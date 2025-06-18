@@ -202,8 +202,18 @@ body {
     font-weight: bold; 
 }
 
+.builtin {
+    color: #3366cc;
+    font-weight: 500;
+}
+
 .string { 
     color: #009900; 
+}
+
+.docstring {
+    color: #006600;
+    font-style: italic;
 }
 
 .comment { 
@@ -216,14 +226,16 @@ body {
     font-weight: bold; 
 }
 
-.variable { 
-    color: #333; 
-}
-
 .number { 
     color: #ff6600; 
 }
 
-.operator { 
-    color: #333; 
+.decorator {
+    color: #9966cc;
+    font-weight: bold;
+}
+
+.type {
+    color: #006666;
+    font-style: italic;
 }

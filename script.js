@@ -394,7 +394,7 @@ if __name__ == "__main__":
         while (this.isRunning && this.currentTimestep < this.maxTimesteps) {
             await this.processTimestep(this.currentTimestep);
             this.currentTimestep++;
-            await this.delay(2000); // Pause between timesteps
+            await this.delay(200); // Very short pause between timesteps
         }
         
         this.updateStatus('complete', 'Animation Complete');
@@ -425,12 +425,12 @@ if __name__ == "__main__":
         // Phase 1: Animate codebank changes
         this.updateStatus('codebank', 'Animating codebank changes');
         await this.animateDiff(codebankPrev, codebankNext, this.codebankContent);
-        await this.delay(1500);
+        await this.delay(200);
         
         // Phase 2: Animate solution changes
         this.updateStatus('solution', 'Animating solution changes');
         await this.animateDiff(solutionPrev, solutionNext, this.solutionContent);
-        await this.delay(1000);
+        await this.delay(200);
     }
 
     displayCode(content, container) {
@@ -438,9 +438,107 @@ if __name__ == "__main__":
         container.innerHTML = lines.map((line, i) => `
             <div class="code-line" data-line="${i + 1}">
                 <div class="line-number">${i + 1}</div>
-                <div class="line-content">${this.escapeHtml(line)}</div>
+                <div class="line-content">${this.applySyntaxHighlighting(line)}</div>
             </div>
         `).join('');
+    }
+
+    applySyntaxHighlighting(code) {
+        const escaped = this.escapeHtml(code);
+        const tokens = this.tokenize(escaped);
+        return this.renderTokens(tokens);
+    }
+
+    tokenize(code) {
+        const tokens = [];
+        let i = 0;
+        
+        while (i < code.length) {
+            let matched = false;
+            
+            // Check for triple-quoted strings first (highest priority)
+            const tripleQuoteMatch = code.slice(i).match(/^("""[\s\S]*?"""|'''[\s\S]*?''')/);
+            if (tripleQuoteMatch) {
+                tokens.push({ type: 'docstring', value: tripleQuoteMatch[1] });
+                i += tripleQuoteMatch[1].length;
+                matched = true;
+                continue;
+            }
+            
+            // Check for comments
+            const commentMatch = code.slice(i).match(/^#.*$/m);
+            if (commentMatch) {
+                tokens.push({ type: 'comment', value: commentMatch[0] });
+                i += commentMatch[0].length;
+                matched = true;
+                continue;
+            }
+            
+            // Check for string literals
+            const stringMatch = code.slice(i).match(/^(["'])((?:[^\\]|\\.)*)(\1)/);
+            if (stringMatch) {
+                tokens.push({ type: 'string', value: stringMatch[0] });
+                i += stringMatch[0].length;
+                matched = true;
+                continue;
+            }
+            
+            // Check for numbers
+            const numberMatch = code.slice(i).match(/^\d+\.?\d*/);
+            if (numberMatch) {
+                tokens.push({ type: 'number', value: numberMatch[0] });
+                i += numberMatch[0].length;
+                matched = true;
+                continue;
+            }
+            
+            // Check for keywords
+            const keywordMatch = code.slice(i).match(/^(def|class|import|from|if|else|elif|for|while|return|try|except|finally|with|as|in|and|or|not|is|lambda|yield|async|await|pass|break|continue|raise|assert|del|global|nonlocal|True|False|None)\b/);
+            if (keywordMatch) {
+                tokens.push({ type: 'keyword', value: keywordMatch[1] });
+                i += keywordMatch[1].length;
+                matched = true;
+                continue;
+            }
+            
+            // Check for function calls
+            const functionMatch = code.slice(i).match(/^([a-zA-Z_][a-zA-Z0-9_]*)(?=\s*\()/);
+            if (functionMatch) {
+                tokens.push({ type: 'function', value: functionMatch[1] });
+                i += functionMatch[1].length;
+                matched = true;
+                continue;
+            }
+            
+            // If no pattern matched, add the character as plain text
+            if (!matched) {
+                tokens.push({ type: 'plain', value: code[i] });
+                i++;
+            }
+        }
+        
+        return tokens;
+    }
+
+    renderTokens(tokens) {
+        return tokens.map(token => {
+            switch (token.type) {
+                case 'docstring':
+                    return `<span class="docstring">${token.value}</span>`;
+                case 'string':
+                    return `<span class="string">${token.value}</span>`;
+                case 'comment':
+                    return `<span class="comment">${token.value}</span>`;
+                case 'keyword':
+                    return `<span class="keyword">${token.value}</span>`;
+                case 'number':
+                    return `<span class="number">${token.value}</span>`;
+                case 'function':
+                    return `<span class="function">${token.value}</span>`;
+                default:
+                    return token.value;
+            }
+        }).join('');
     }
 
     async animateDiff(prevContent, nextContent, container) {
