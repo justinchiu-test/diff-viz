@@ -114,6 +114,13 @@ body {
     font-size: 9px;
     line-height: 12px;
     padding: 4px;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.doc-content::-webkit-scrollbar {
+    display: none;
 }
 
 .doc-line {

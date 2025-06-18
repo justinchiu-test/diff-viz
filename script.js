@@ -179,7 +179,7 @@ const docData = {
 };
 
 let animationRunning = true;
-let animationSpeed = 250; // 4 changes per second
+let animationSpeed = 500; // 2 changes per second
 let iterationCount = 1;
 let timeoutId;
 
@@ -528,7 +528,7 @@ function animateChanges() {
 
     const changeType = Math.random();
     
-    if (changeType < 0.6) {
+    if (changeType < 0.5) {
         // Update documentation
         const docIds = ['doc1', 'doc2', 'doc3'];
         const randomDoc = docIds[Math.floor(Math.random() * docIds.length)];
@@ -536,44 +536,54 @@ function animateChanges() {
         const newEntries = newDocEntries[randomDoc];
         
         if (Math.random() < 0.7) {
-            // Add new documentation line
-            const newEntry = newEntries[Math.floor(Math.random() * newEntries.length)];
+            // Add large blocks of documentation (10-20 lines)
+            const blockSize = Math.floor(Math.random() * 11) + 10; // 10-20 lines
             const insertIndex = Math.floor(Math.random() * (docContent.length + 1));
-            docContent.splice(insertIndex, 0, newEntry);
+            
+            for (let i = 0; i < blockSize; i++) {
+                const newEntry = newEntries[Math.floor(Math.random() * newEntries.length)];
+                docContent.splice(insertIndex + i, 0, newEntry);
+            }
             
             renderDoc(randomDoc, docContent);
             
             setTimeout(() => {
-                scrollToLine(randomDoc, insertIndex);
+                scrollToLine(randomDoc, insertIndex + Math.floor(blockSize / 2));
                 const lines = document.getElementById(randomDoc).querySelectorAll('.doc-line');
-                if (lines[insertIndex]) {
-                    lines[insertIndex].classList.add('added');
-                    setTimeout(() => {
-                        lines[insertIndex].classList.remove('added');
-                    }, 2000);
+                for (let i = 0; i < blockSize; i++) {
+                    if (lines[insertIndex + i]) {
+                        lines[insertIndex + i].classList.add('added');
+                        setTimeout(() => {
+                            lines[insertIndex + i].classList.remove('added');
+                        }, 2000);
+                    }
                 }
             }, 50);
-        } else if (docContent.length > 3) {
-            // Remove documentation line
-            const deleteIndex = Math.floor(Math.random() * docContent.length);
+        } else if (docContent.length > 10) {
+            // Remove blocks of documentation (but not too much)
+            const maxDeleteSize = Math.min(15, Math.floor(docContent.length * 0.3));
+            const deleteSize = Math.min(Math.floor(Math.random() * 6) + 5, maxDeleteSize);
+            const deleteIndex = Math.floor(Math.random() * Math.max(1, docContent.length - deleteSize));
             const lines = document.getElementById(randomDoc).querySelectorAll('.doc-line');
             
-            scrollToLine(randomDoc, deleteIndex);
+            scrollToLine(randomDoc, deleteIndex + Math.floor(deleteSize / 2));
             
-            if (lines[deleteIndex]) {
-                lines[deleteIndex].classList.add('deleted');
-                
-                setTimeout(() => {
-                    docContent.splice(deleteIndex, 1);
-                    renderDoc(randomDoc, docContent);
-                }, 1000);
+            for (let i = 0; i < deleteSize; i++) {
+                if (lines[deleteIndex + i]) {
+                    lines[deleteIndex + i].classList.add('deleted');
+                }
             }
+            
+            setTimeout(() => {
+                docContent.splice(deleteIndex, deleteSize);
+                renderDoc(randomDoc, docContent);
+            }, 1000);
         }
     } else {
         // Update main code
         if (Math.random() < 0.7) {
-            // Sometimes add multiple lines (block of code)
-            const blockSize = Math.random() < 0.3 ? Math.floor(Math.random() * 8) + 3 : 1;
+            // Add large blocks of code (10-20 lines)
+            const blockSize = Math.floor(Math.random() * 11) + 10; // 10-20 lines
             const insertIndex = Math.floor(Math.random() * (codeContent.length + 1));
             
             for (let i = 0; i < blockSize; i++) {
@@ -595,12 +605,13 @@ function animateChanges() {
                     }
                 }
             }, 50);
-        } else if (codeContent.length > 20) {
+        } else if (codeContent.length > 10) {
             // Sometimes modify, sometimes delete
             if (Math.random() < 0.5) {
-                // Delete block of lines
-                const deleteSize = Math.random() < 0.3 ? Math.floor(Math.random() * 5) + 2 : 1;
-                const deleteIndex = Math.floor(Math.random() * (codeContent.length - deleteSize));
+                // Delete blocks of lines (but not too much)
+                const maxDeleteSize = Math.min(15, Math.floor(codeContent.length * 0.3));
+                const deleteSize = Math.min(Math.floor(Math.random() * 6) + 5, maxDeleteSize);
+                const deleteIndex = Math.floor(Math.random() * Math.max(1, codeContent.length - deleteSize));
                 
                 scrollToLine('codeContent', deleteIndex + Math.floor(deleteSize / 2));
                 
@@ -616,33 +627,38 @@ function animateChanges() {
                     renderCode();
                 }, 1000);
             } else {
-                // Modify existing line
-                const modifyIndex = Math.floor(Math.random() * codeContent.length);
-                const originalLine = codeContent[modifyIndex];
+                // Modify block of lines (5-10)
+                const modifySize = Math.floor(Math.random() * 6) + 5;
+                const modifyIndex = Math.floor(Math.random() * Math.max(1, codeContent.length - modifySize));
                 
-                scrollToLine('codeContent', modifyIndex);
+                scrollToLine('codeContent', modifyIndex + Math.floor(modifySize / 2));
                 
-                const modifications = [
-                    originalLine + '  # Updated',
-                    originalLine.replace(/matrix/g, 'data'),
-                    originalLine.replace(/rank/g, 'components'),
-                    originalLine.replace(/gradient/g, 'grad'),
-                    originalLine.replace(/def /g, 'async def '),
-                    originalLine.replace(/float/g, 'np.float64'),
-                    originalLine.replace(/return/g, 'yield'),
-                ];
-                
-                codeContent[modifyIndex] = modifications[Math.floor(Math.random() * modifications.length)];
+                for (let i = 0; i < modifySize && (modifyIndex + i) < codeContent.length; i++) {
+                    const originalLine = codeContent[modifyIndex + i];
+                    const modifications = [
+                        originalLine + '  # Updated',
+                        originalLine.replace(/matrix/g, 'data'),
+                        originalLine.replace(/rank/g, 'components'),
+                        originalLine.replace(/gradient/g, 'grad'),
+                        originalLine.replace(/def /g, 'async def '),
+                        originalLine.replace(/float/g, 'np.float64'),
+                        originalLine.replace(/return/g, 'yield'),
+                    ];
+                    
+                    codeContent[modifyIndex + i] = modifications[Math.floor(Math.random() * modifications.length)];
+                }
                 
                 renderCode();
                 
                 setTimeout(() => {
                     const lines = document.getElementById('codeContent').querySelectorAll('.code-line');
-                    if (lines[modifyIndex]) {
-                        lines[modifyIndex].classList.add('modified');
-                        setTimeout(() => {
-                            lines[modifyIndex].classList.remove('modified');
-                        }, 2000);
+                    for (let i = 0; i < modifySize; i++) {
+                        if (lines[modifyIndex + i]) {
+                            lines[modifyIndex + i].classList.add('modified');
+                            setTimeout(() => {
+                                lines[modifyIndex + i].classList.remove('modified');
+                            }, 2000);
+                        }
                     }
                 }, 50);
             }
