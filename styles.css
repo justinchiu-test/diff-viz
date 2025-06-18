@@ -19,7 +19,6 @@ body {
 }
 
 .code-panel {
-    width: 50%;
     background: white;
     display: flex;
     flex-direction: column;
@@ -27,6 +26,26 @@ body {
     border-radius: 8px;
     margin: 8px;
     overflow: hidden;
+}
+
+.code-panel:first-child {
+    width: 50%;
+}
+
+.right-pane {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+}
+
+.solution-prev {
+    flex: 1;
+    margin-bottom: 4px;
+}
+
+.solution-next {
+    flex: 1;
+    margin-top: 4px;
 }
 
 .code-header {

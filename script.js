@@ -8,381 +8,462 @@ class DiffVisualizer {
         
         // DOM elements
         this.codebankContent = document.getElementById('codebankContent');
-        this.solutionContent = document.getElementById('solutionContent');
+        this.solutionPrevContent = document.getElementById('solutionPrevContent');
+        this.solutionNextContent = document.getElementById('solutionNextContent');
         this.codebankFileName = document.getElementById('codebankFileName');
-        this.solutionFileName = document.getElementById('solutionFileName');
+        this.solutionPrevFileName = document.getElementById('solutionPrevFileName');
+        this.solutionNextFileName = document.getElementById('solutionNextFileName');
         this.currentPhaseEl = document.getElementById('currentPhase');
         this.timestepCountEl = document.getElementById('timestepCount');
         this.phaseIndicator = document.querySelector('.phase-indicator');
         
         this.maxTimesteps = 3; // We have time0, time1, time2
         
-        // Embedded sample data
+        // Real data from Librarian viz_data
         this.sampleData = {
             time0: {
-                codebank_prev: `#!/usr/bin/env python3
-"""
-Basic matrix operations library.
-"""
+                codebank_prev: `
+import sys
+from collections import deque
+import heapq`,
+                codebank_next: `
+import sys
+from collections import deque
+import heapq
+def compute_degrees(n, edges):
 
-import numpy as np
+    occ = [0] * n
+    for (u, v) in edges:
+        occ[u] += 1
+        occ[v] += 1
+    return occ
 
-def add_matrices(a, b):
-    """Add two matrices."""
-    return a + b
+def find_node_with_degree_at_least(occ, k):
 
-def multiply_matrices(a, b):
-    """Multiply two matrices."""
-    return np.dot(a, b)`,
-                codebank_next: `#!/usr/bin/env python3
-"""
-Basic matrix operations library.
-Enhanced with input validation.
-"""
+    for (i, d) in enumerate(occ):
+        if d >= k:
+            return i
+    return -1
 
-import numpy as np
+def find_leaves(occ):
 
-def validate_input(matrix):
-    """Validate matrix input."""
-    if not isinstance(matrix, np.ndarray):
-        raise TypeError("Input must be a numpy array")
-    return True
+    return [i for (i, d) in enumerate(occ) if d == 1]
 
-def add_matrices(a, b):
-    """Add two matrices with validation."""
-    validate_input(a)
-    validate_input(b)
-    return a + b
+def assign_incident_labels(edges, node, labels, start):
 
-def multiply_matrices(a, b):
-    """Multiply two matrices with validation."""
-    validate_input(a)
-    validate_input(b)
-    return np.dot(a, b)`,
-                solution_prev: `import numpy as np
-from codebank import add_matrices, multiply_matrices
+    for (idx, (u, v)) in enumerate(edges):
+        if labels[idx] == -1 and (u == node or v == node):
+            labels[idx] = start
+            start += 1
+    return start
 
-# Test basic operations
-a = np.array([[1, 2], [3, 4]])
-b = np.array([[5, 6], [7, 8]])
+def fill_remaining_labels(labels, start):
 
-result_add = add_matrices(a, b)
-result_mult = multiply_matrices(a, b)
+    for i in range(len(labels)):
+        if labels[i] == -1:
+            labels[i] = start
+            start += 1
+    return labels
 
-print("Addition result:", result_add)
-print("Multiplication result:", result_mult)`,
-                solution_next: `import numpy as np
-from codebank import add_matrices, multiply_matrices
-
-# Test enhanced operations with error handling
-a = np.array([[1, 2], [3, 4]])
-b = np.array([[5, 6], [7, 8]])
-
-try:
-    result_add = add_matrices(a, b)
-    result_mult = multiply_matrices(a, b)
+`,
+                solution_prev: `n = int(input())
+occ = [0 for i in range(n)]
+graph = [[0,0] for i in range(n-1)]
+for i in range(n-1):
+    x, y = map(int,input().split())
+    occ[x-1]+=1
+    occ[y-1]+=1
+    graph[i][0] = x-1
+    graph[i][1] = y-1
     
-    print("Addition result:", result_add)
-    print("Multiplication result:", result_mult)
-    
-    # Test with invalid input
-    invalid_input = [[1, 2], [3, 4]]  # Regular list, not numpy array
-    result_invalid = add_matrices(a, invalid_input)
-    
-except TypeError as e:
-    print(f"Error caught: {e}")
-    print("Validation is working correctly!")`
-            },
-            time1: {
-                codebank_prev: `#!/usr/bin/env python3
-"""
-Basic matrix operations library.
-Enhanced with input validation.
-"""
+fin = [-1 for i in range(n-1)]
+for i in range(n):
+    if occ[i] >= 3 :
+        var = 0
+        for j in range(n-1):
+            if graph[j][0] == i or graph[j][1] == i:
+                fin[j] = var
+                var += 1
+        break
+else:
+    var = 0
+    for i in range(n):
+        if var > 1:
+            break
+        if occ[i] == 1:
+            for j in range(n-1):
+                if graph[j][0] == i or graph[j][1] == i:
+                    fin[j] = var
+                    var += 1
+                    break
+for i in fin:
+    if n == 2:
+        print(0)
+        break
+    if i == -1:
+        print(var)
+        var += 1
+    else:
+        print(i)`,
+                solution_next: `from codebank import *
 
-import numpy as np
+from codebank import *
 
-def validate_input(matrix):
-    """Validate matrix input."""
-    if not isinstance(matrix, np.ndarray):
-        raise TypeError("Input must be a numpy array")
-    return True
-
-def add_matrices(a, b):
-    """Add two matrices with validation."""
-    validate_input(a)
-    validate_input(b)
-    return a + b
-
-def multiply_matrices(a, b):
-    """Multiply two matrices with validation."""
-    validate_input(a)
-    validate_input(b)
-    return np.dot(a, b)`,
-                codebank_next: `#!/usr/bin/env python3
-"""
-Advanced matrix operations library.
-Enhanced with input validation and logging.
-"""
-
-import numpy as np
-import logging
-
-logger = logging.getLogger(__name__)
-
-def validate_input(matrix):
-    """Validate matrix input with logging."""
-    if not isinstance(matrix, np.ndarray):
-        logger.error("Invalid input type: %s", type(matrix))
-        raise TypeError("Input must be a numpy array")
-    logger.debug("Input validation passed")
-    return True
-
-def add_matrices(a, b):
-    """Add two matrices with validation."""
-    validate_input(a)
-    validate_input(b)
-    logger.info("Adding matrices of shapes %s and %s", a.shape, b.shape)
-    return a + b
-
-def multiply_matrices(a, b):
-    """Multiply two matrices with validation."""
-    validate_input(a)
-    validate_input(b)
-    logger.info("Multiplying matrices of shapes %s and %s", a.shape, b.shape)
-    return np.dot(a, b)
-
-def transpose_matrix(matrix):
-    """Transpose a matrix."""
-    validate_input(matrix)
-    logger.info("Transposing matrix of shape %s", matrix.shape)
-    return matrix.T`,
-                solution_prev: `import numpy as np
-from codebank import add_matrices, multiply_matrices
-
-# Test enhanced operations with error handling
-a = np.array([[1, 2], [3, 4]])
-b = np.array([[5, 6], [7, 8]])
-
-try:
-    result_add = add_matrices(a, b)
-    result_mult = multiply_matrices(a, b)
-    
-    print("Addition result:", result_add)
-    print("Multiplication result:", result_mult)
-    
-except TypeError as e:
-    print(f"Error caught: {e}")`,
-                solution_next: `import numpy as np
-import logging
-from codebank import add_matrices, multiply_matrices, transpose_matrix
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-
-# Test enhanced operations with logging
-a = np.array([[1, 2], [3, 4]])
-b = np.array([[5, 6], [7, 8]])
-
-try:
-    result_add = add_matrices(a, b)
-    result_mult = multiply_matrices(a, b)
-    result_transpose = transpose_matrix(a)
-    
-    print("Addition result:", result_add)
-    print("Multiplication result:", result_mult)
-    print("Transpose result:", result_transpose)
-    
-    # Performance test
-    large_a = np.random.randn(100, 100)
-    large_b = np.random.randn(100, 100)
-    
-    large_result = multiply_matrices(large_a, large_b)
-    print(f"Large matrix multiplication completed: {large_result.shape}")
-    
-except TypeError as e:
-    print(f"Error caught: {e}")`
-            },
-            time2: {
-                codebank_prev: `#!/usr/bin/env python3
-"""
-Advanced matrix operations library.
-Enhanced with input validation and logging.
-"""
-
-import numpy as np
-import logging
-
-logger = logging.getLogger(__name__)
-
-def validate_input(matrix):
-    """Validate matrix input with logging."""
-    if not isinstance(matrix, np.ndarray):
-        logger.error("Invalid input type: %s", type(matrix))
-        raise TypeError("Input must be a numpy array")
-    logger.debug("Input validation passed")
-    return True
-
-def add_matrices(a, b):
-    """Add two matrices with validation."""
-    validate_input(a)
-    validate_input(b)
-    logger.info("Adding matrices of shapes %s and %s", a.shape, b.shape)
-    return a + b
-
-def multiply_matrices(a, b):
-    """Multiply two matrices with validation."""
-    validate_input(a)
-    validate_input(b)
-    logger.info("Multiplying matrices of shapes %s and %s", a.shape, b.shape)
-    return np.dot(a, b)
-
-def transpose_matrix(matrix):
-    """Transpose a matrix."""
-    validate_input(matrix)
-    logger.info("Transposing matrix of shape %s", matrix.shape)
-    return matrix.T`,
-                codebank_next: `#!/usr/bin/env python3
-"""
-Professional matrix operations library.
-Enhanced with input validation, logging, and performance optimization.
-"""
-
-import numpy as np
-import logging
-from typing import Union
-import time
-
-logger = logging.getLogger(__name__)
-
-def validate_input(matrix: np.ndarray) -> bool:
-    """Validate matrix input with comprehensive checks."""
-    if not isinstance(matrix, np.ndarray):
-        logger.error("Invalid input type: %s", type(matrix))
-        raise TypeError("Input must be a numpy array")
-    
-    if matrix.size == 0:
-        raise ValueError("Matrix cannot be empty")
-    
-    if not np.isfinite(matrix).all():
-        raise ValueError("Matrix contains invalid values (NaN or Inf)")
-    
-    logger.debug("Input validation passed for matrix shape %s", matrix.shape)
-    return True
-
-def add_matrices(a: np.ndarray, b: np.ndarray) -> np.ndarray:
-    """Add two matrices with validation and timing."""
-    start_time = time.time()
-    validate_input(a)
-    validate_input(b)
-    
-    if a.shape != b.shape:
-        raise ValueError(f"Matrix shapes don't match: {a.shape} vs {b.shape}")
-    
-    result = a + b
-    elapsed = time.time() - start_time
-    logger.info("Added matrices in %.4f seconds", elapsed)
-    return result
-
-def multiply_matrices(a: np.ndarray, b: np.ndarray) -> np.ndarray:
-    """Multiply two matrices with validation and timing."""
-    start_time = time.time()
-    validate_input(a)
-    validate_input(b)
-    
-    result = np.dot(a, b)
-    elapsed = time.time() - start_time
-    logger.info("Multiplied matrices in %.4f seconds", elapsed)
-    return result
-
-def transpose_matrix(matrix: np.ndarray) -> np.ndarray:
-    """Transpose a matrix with validation."""
-    validate_input(matrix)
-    logger.info("Transposing matrix of shape %s", matrix.shape)
-    return matrix.T
-
-def matrix_norm(matrix: np.ndarray, ord: Union[int, str] = 'fro') -> float:
-    """Calculate matrix norm."""
-    validate_input(matrix)
-    norm_value = np.linalg.norm(matrix, ord=ord)
-    logger.info("Calculated %s norm: %.6f", ord, norm_value)
-    return norm_value`,
-                solution_prev: `import numpy as np
-import logging
-from codebank import add_matrices, multiply_matrices, transpose_matrix
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-
-# Test enhanced operations with logging
-a = np.array([[1, 2], [3, 4]])
-b = np.array([[5, 6], [7, 8]])
-
-try:
-    result_add = add_matrices(a, b)
-    result_mult = multiply_matrices(a, b)
-    result_transpose = transpose_matrix(a)
-    
-    print("Addition result:", result_add)
-    print("Multiplication result:", result_mult)
-    print("Transpose result:", result_transpose)
-    
-except TypeError as e:
-    print(f"Error caught: {e}")`,
-                solution_next: `import numpy as np
-import logging
-from codebank import add_matrices, multiply_matrices, transpose_matrix, matrix_norm
-
-# Configure detailed logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-
-# Comprehensive testing suite
-def run_tests():
-    """Run comprehensive matrix operation tests."""
-    print("=== Matrix Operations Test Suite ===")
-    
-    # Basic operations
-    a = np.array([[1, 2], [3, 4]])
-    b = np.array([[5, 6], [7, 8]])
-    
-    try:
-        result_add = add_matrices(a, b)
-        result_mult = multiply_matrices(a, b)
-        result_transpose = transpose_matrix(a)
-        norm_value = matrix_norm(a)
-        
-        print("Addition result:", result_add)
-        print("Multiplication result:", result_mult)
-        print("Transpose result:", result_transpose)
-        print(f"Matrix norm: {norm_value:.6f}")
-        
-        # Performance benchmark
-        print("\\n=== Performance Benchmark ===")
-        sizes = [50, 100, 200]
-        
-        for size in sizes:
-            large_a = np.random.randn(size, size)
-            large_b = np.random.randn(size, size)
-            
-            large_result = multiply_matrices(large_a, large_b)
-            print(f"Completed {size}x{size} matrix multiplication")
-        
-        # Error handling test
-        print("\\n=== Error Handling Test ===")
-        try:
-            invalid_matrix = np.array([[1, np.inf], [3, 4]])
-            add_matrices(a, invalid_matrix)
-        except ValueError as e:
-            print(f"Successfully caught error: {e}")
-            
-    except Exception as e:
-        print(f"Unexpected error: {e}")
+def main():
+    import sys
+    data = sys.stdin
+    n = int(data.readline())
+    edges = []
+    for _ in range(n-1):
+        u, v = map(int, data.readline().split())
+        edges.append((u-1, v-1))
+    labels = [-1] * (n-1)
+    occ = compute_degrees(n, edges)
+    center = find_node_with_degree_at_least(occ, 3)
+    var = 0
+    if center != -1:
+        var = assign_incident_labels(edges, center, labels, var)
+    else:
+        leaves = find_leaves(occ)
+        for node in leaves[:2]:
+            var = assign_incident_labels(edges, node, labels, var)
+    labels = fill_remaining_labels(labels, var)
+    print('\\n'.join(str(x) for x in labels))
 
 if __name__ == "__main__":
-    run_tests()`
+    main()`
+            },
+            time1: {
+                codebank_prev: `
+import sys
+from collections import deque
+import heapq
+def compute_degrees(n, edges):
+
+    occ = [0] * n
+    for (u, v) in edges:
+        occ[u] += 1
+        occ[v] += 1
+    return occ
+
+def find_node_with_degree_at_least(occ, k):
+
+    for (i, d) in enumerate(occ):
+        if d >= k:
+            return i
+    return -1
+
+def find_leaves(occ):
+
+    return [i for (i, d) in enumerate(occ) if d == 1]
+
+def assign_incident_labels(edges, node, labels, start):
+
+    for (idx, (u, v)) in enumerate(edges):
+        if labels[idx] == -1 and (u == node or v == node):
+            labels[idx] = start
+            start += 1
+    return start
+
+def fill_remaining_labels(labels, start):
+
+    for i in range(len(labels)):
+        if labels[i] == -1:
+            labels[i] = start
+            start += 1
+    return labels
+
+`,
+                codebank_next: `
+import sys
+from collections import deque
+import heapq
+from typing import List
+def compute_degrees(n, edges):
+
+    occ = [0] * n
+    for (u, v) in edges:
+        occ[u] += 1
+        occ[v] += 1
+    return occ
+
+def find_node_with_degree_at_least(occ, k):
+
+    for (i, d) in enumerate(occ):
+        if d >= k:
+            return i
+    return -1
+
+def find_leaves(occ):
+
+    return [i for (i, d) in enumerate(occ) if d == 1]
+
+def assign_incident_labels(edges, node, labels, start):
+
+    for (idx, (u, v)) in enumerate(edges):
+        if labels[idx] == -1 and (u == node or v == node):
+            labels[idx] = start
+            start += 1
+    return start
+
+def fill_remaining_labels(labels, start):
+
+    for i in range(len(labels)):
+        if labels[i] == -1:
+            labels[i] = start
+            start += 1
+    return labels
+
+def max_rounds_to_stabilize(arr):
+
+    stack = []
+    dp = [0] * len(arr)
+    max_rounds = 0
+    for (i, x) in enumerate(arr):
+        max_dp = 0
+        while stack and arr[stack[-1]] < x:
+            max_dp = max(max_dp, dp[stack.pop()])
+        if stack:
+            dp[i] = max_dp + 1
+            max_rounds = max(max_rounds, dp[i])
+        stack.append(i)
+    return max_rounds
+
+`,
+                solution_prev: `n, t = int(input()), list(map(int, input().split()))
+
+p, s, r = [0] * n, [0] * n, t[0]
+
+for i in range(n - 1):
+
+    j = i + 1
+
+    x = t[j]
+
+    if x > r: r = x
+
+    else:
+
+        while t[i] < x: s[j], i = max(s[j], s[i]), p[i]
+
+        p[j] = i
+
+        s[j] += 1
+
+print(max(s))
+
+
+
+# Made By Mostafa_Khaled`,
+                solution_next: `from codebank import *
+
+from codebank import *
+
+def main():
+    n = int(input())
+    arr = list(map(int, input().split()))
+    print(max_rounds_to_stabilize(arr))
+
+if __name__ == "__main__":
+    main()`
+            },
+            time2: {
+                codebank_prev: `
+import sys
+from collections import deque
+import heapq
+from typing import List
+def compute_degrees(n, edges):
+
+    occ = [0] * n
+    for (u, v) in edges:
+        occ[u] += 1
+        occ[v] += 1
+    return occ
+
+def find_node_with_degree_at_least(occ, k):
+
+    for (i, d) in enumerate(occ):
+        if d >= k:
+            return i
+    return -1
+
+def find_leaves(occ):
+
+    return [i for (i, d) in enumerate(occ) if d == 1]
+
+def assign_incident_labels(edges, node, labels, start):
+
+    for (idx, (u, v)) in enumerate(edges):
+        if labels[idx] == -1 and (u == node or v == node):
+            labels[idx] = start
+            start += 1
+    return start
+
+def fill_remaining_labels(labels, start):
+
+    for i in range(len(labels)):
+        if labels[i] == -1:
+            labels[i] = start
+            start += 1
+    return labels
+
+def max_rounds_to_stabilize(arr):
+
+    stack = []
+    dp = [0] * len(arr)
+    max_rounds = 0
+    for (i, x) in enumerate(arr):
+        max_dp = 0
+        while stack and arr[stack[-1]] < x:
+            max_dp = max(max_dp, dp[stack.pop()])
+        if stack:
+            dp[i] = max_dp + 1
+            max_rounds = max(max_rounds, dp[i])
+        stack.append(i)
+    return max_rounds
+
+`,
+                codebank_next: `
+import heapq
+import sys
+from collections import defaultdict
+from typing import List
+from collections import deque
+def compute_degrees(n, edges):
+
+    occ = [0] * n
+    for (u, v) in edges:
+        occ[u] += 1
+        occ[v] += 1
+    return occ
+
+def find_node_with_degree_at_least(occ, k):
+
+    for (i, d) in enumerate(occ):
+        if d >= k:
+            return i
+    return -1
+
+def find_leaves(occ):
+
+    return [i for (i, d) in enumerate(occ) if d == 1]
+
+def assign_incident_labels(edges, node, labels, start):
+
+    for (idx, (u, v)) in enumerate(edges):
+        if labels[idx] == -1 and (u == node or v == node):
+            labels[idx] = start
+            start += 1
+    return start
+
+def fill_remaining_labels(labels, start):
+
+    for i in range(len(labels)):
+        if labels[i] == -1:
+            labels[i] = start
+            start += 1
+    return labels
+
+def max_rounds_to_stabilize(arr):
+
+    stack = []
+    dp = [0] * len(arr)
+    max_rounds = 0
+    for (i, x) in enumerate(arr):
+        max_dp = 0
+        while stack and arr[stack[-1]] < x:
+            max_dp = max(max_dp, dp[stack.pop()])
+        if stack:
+            dp[i] = max_dp + 1
+            max_rounds = max(max_rounds, dp[i])
+        stack.append(i)
+    return max_rounds
+
+def build_graph(n, edges):
+
+    graph = [[] for _ in range(n)]
+    for (u, v) in edges:
+        graph[u - 1].append(v - 1)
+        graph[v - 1].append(u - 1)
+    return graph
+
+def dfs_subtree_sizes(node, parent, graph, sizes):
+
+    total = 1
+    for nei in graph[node]:
+        if nei != parent:
+            total += dfs_subtree_sizes(nei, node, graph, sizes)
+    sizes[node] = total
+    return total
+
+def compute_subtree_sizes(graph, n, root=0):
+
+    sizes = [0] * n
+    dfs_subtree_sizes(root, -1, graph, sizes)
+    return sizes
+
+def count_removable_edges(sizes):
+
+    return sum((1 for size in sizes[1:] if size % 2 == 0))
+
+`,
+                solution_prev: `from collections import  defaultdict
+import threading
+from sys import stdin,setrecursionlimit
+setrecursionlimit(300000)
+input=stdin.readline
+
+def dfs(node,g,par,sz):
+	for i in g[node]:
+		if i!=par:
+			sz[node]+=dfs(i,g,node,sz)
+	return sz[node]+1
+def main():
+	n=int(input())
+	if n%2!=0:
+		print(-1)
+		exit(0)
+	g=defaultdict(list)
+	for i in range(n-1):
+		x,y=map(int,input().strip().split())
+		g[x-1].append(y-1)
+		g[y-1].append(x-1)
+
+	sz=[0]*(n)
+	tt=[]
+	dfs(0,g,-1,sz)
+	res=0
+	# print(sz)
+	for i in range(1,n):
+		if sz[i]%2!=0:
+			res+=1
+	print(res)
+
+threading.stack_size(10 ** 8)
+t = threading.Thread(target=main)
+t.start()
+t.join()`,
+                solution_next: `from codebank import *
+
+from codebank import *
+
+import sys
+
+def main():
+    sys.setrecursionlimit(10**7)
+    input = sys.stdin.readline
+    n = int(input())
+    if n & 1:
+        print(-1)
+        return
+    edges = [tuple(map(int, input().split())) for _ in range(n-1)]
+    graph = build_graph(n, edges)
+    sizes = compute_subtree_sizes(graph, n)
+    print(count_removable_edges(sizes))
+
+if __name__ == "__main__":
+    main()`
             }
         };
     }
@@ -415,21 +496,23 @@ if __name__ == "__main__":
         
         // Update file names
         this.codebankFileName.textContent = 'codebank.py';
-        this.solutionFileName.textContent = `solution${timestep + 1}.py`;
+        this.solutionPrevFileName.textContent = `solution${timestep + 1}_prev.py`;
+        this.solutionNextFileName.textContent = `solution${timestep + 1}_next.py`;
         
-        // Show initial state (prev versions)
+        // Show initial state
         this.displayCode(codebankPrev, this.codebankContent);
-        this.displayCode(solutionPrev, this.solutionContent);
+        this.displayCode(solutionPrev, this.solutionPrevContent);
+        this.solutionNextContent.innerHTML = ''; // Start empty
         await this.delay(1000);
         
         // Phase 1: Animate codebank changes
         this.updateStatus('codebank', 'Animating codebank changes');
         await this.animateDiff(codebankPrev, codebankNext, this.codebankContent);
-        await this.delay(200);
+        await this.delay(500);
         
-        // Phase 2: Animate solution changes
-        this.updateStatus('solution', 'Animating solution changes');
-        await this.animateDiff(solutionPrev, solutionNext, this.solutionContent);
+        // Phase 2: Write solution_next line by line
+        this.updateStatus('solution', 'Writing solution_next.py');
+        await this.writeCodeLineByLine(solutionNext, this.solutionNextContent);
         await this.delay(200);
     }
 
@@ -550,22 +633,29 @@ if __name__ == "__main__":
     }
 
     async animateLineByLine(prevLines, nextLines, container) {
-        // Simple line-by-line diff: find which lines are new
-        const maxLines = Math.max(prevLines.length, nextLines.length);
+        // Start by showing the previous version
+        this.displayCode(prevLines.join('\n'), container);
+        await this.delay(500); // Brief pause to show the starting state
         
-        // First, display the final content
-        this.displayCode(nextLines.join('\n'), container);
+        // Find actual differences using proper diff algorithm
+        const changes = this.calculateLineDiff(prevLines, nextLines);
         
-        // Then animate the added lines
-        for (let i = 0; i < nextLines.length; i++) {
-            const currentLine = nextLines[i];
-            const isNewLine = i >= prevLines.length || currentLine !== prevLines[i];
-            
-            if (isNewLine) {
-                const lineEl = container.querySelector(`[data-line="${i + 1}"]`);
+        // Build the content incrementally by adding new lines
+        let currentContent = [...prevLines];
+        
+        for (const change of changes) {
+            if (change.type === 'add') {
+                // Insert the new line at the correct position
+                currentContent.splice(change.insertIndex, 0, change.content);
+                
+                // Update the display with the new content
+                this.displayCode(currentContent.join('\n'), container);
+                
+                // Find and highlight the newly added line
+                const lineEl = container.querySelector(`[data-line="${change.insertIndex + 1}"]`);
                 if (lineEl) {
                     // Scroll to the line
-                    this.scrollToLine(i + 1, container);
+                    this.scrollToLine(change.insertIndex + 1, container);
                     
                     // Add green highlight
                     lineEl.classList.add('added');
@@ -573,11 +663,69 @@ if __name__ == "__main__":
                     // Remove highlight after short delay
                     setTimeout(() => {
                         lineEl.classList.remove('added');
-                    }, 600); // Even faster transition
+                    }, 600);
                     
-                    // Very short delay before next line
+                    // Short delay before next line
                     await this.delay(150);
                 }
+            }
+        }
+    }
+
+    calculateLineDiff(prevLines, nextLines) {
+        const changes = [];
+        const prevSet = new Set(prevLines);
+        
+        // Find where to insert new lines by comparing sequences
+        let prevIndex = 0;
+        
+        for (let nextIndex = 0; nextIndex < nextLines.length; nextIndex++) {
+            const line = nextLines[nextIndex];
+            
+            if (prevSet.has(line)) {
+                // This line exists in prev, advance the prev pointer
+                while (prevIndex < prevLines.length && prevLines[prevIndex] !== line) {
+                    prevIndex++;
+                }
+                prevIndex++;
+            } else {
+                // This is a new line, add it to changes
+                changes.push({
+                    type: 'add',
+                    insertIndex: prevIndex,
+                    content: line
+                });
+                prevIndex++; // Account for the line we're inserting
+            }
+        }
+        
+        return changes;
+    }
+
+    async writeCodeLineByLine(content, container) {
+        const lines = content.split('\n');
+        
+        for (let i = 0; i < lines.length; i++) {
+            // Build content up to current line
+            const currentContent = lines.slice(0, i + 1).join('\n');
+            this.displayCode(currentContent, container);
+            
+            // Highlight the newly added line
+            const lineEl = container.querySelector(`[data-line="${i + 1}"]`);
+            if (lineEl) {
+                // Scroll to the line
+                this.scrollToLine(i + 1, container);
+                
+                // Add green highlight
+                lineEl.classList.add('added');
+                
+                // Remove highlight after short delay
+                setTimeout(() => {
+                    lineEl.classList.remove('added');
+                }, 600);
+                
+                // Short delay before next line
+                await this.delay(100);
             }
         }
     }
