@@ -179,84 +179,284 @@ const docData = {
 };
 
 let animationRunning = true;
-let animationSpeed = 500; // 2 changes per second
+let animationSpeed = 250; // 4 changes per second
 let iterationCount = 1;
 let timeoutId;
 
 const newCodeLines = [
-    'from sklearn.decomposition import PCA',
+    'from sklearn.decomposition import PCA, TruncatedSVD',
+    'from sklearn.preprocessing import StandardScaler',
     'import matplotlib.pyplot as plt',
+    'import seaborn as sns',
+    'import logging',
+    'from concurrent.futures import ThreadPoolExecutor',
+    'from functools import lru_cache',
+    'import warnings',
+    '',
     'logger = logging.getLogger(__name__)',
+    'warnings.filterwarnings("ignore", category=FutureWarning)',
+    '',
+    'class ValidationError(Exception):',
+    '    """Custom exception for validation errors."""',
+    '    pass',
+    '',
     'def validate_input(matrix: np.ndarray) -> bool:',
-    '    return matrix.ndim == 2 and matrix.size > 0',
+    '    """',
+    '    Comprehensive input validation for matrices.',
+    '    ',
+    '    Checks:',
+    '    - Matrix dimensions',
+    '    - NaN/Inf values',
+    '    - Data type compatibility',
+    '    """',
+    '    if matrix.ndim != 2:',
+    '        raise ValidationError(f"Expected 2D array, got {matrix.ndim}D")',
+    '    ',
+    '    if matrix.size == 0:',
+    '        raise ValidationError("Empty matrix provided")',
+    '    ',
+    '    if np.any(np.isnan(matrix)) or np.any(np.isinf(matrix)):',
+    '        raise ValidationError("Matrix contains NaN or Inf values")',
+    '    ',
+    '    return True',
+    '',
+    '@lru_cache(maxsize=128)',
+    'def compute_svd_threshold(matrix_shape: Tuple[int, int], rank: int) -> float:',
+    '    """Calculate optimal threshold for SVD truncation."""',
+    '    m, n = matrix_shape',
+    '    return rank * np.sqrt(2 * (m + n) + 1)',
+    '',
     'class AdaptiveLearningRate:',
-    '    def __init__(self, initial_lr: float = 0.001):',
-    '        self.lr = initial_lr',
-    'def plot_convergence(losses: List[float]):',
-    '    plt.plot(losses)',
-    '    plt.xlabel("Iteration")',
-    '    plt.ylabel("Loss")',
+    '    """',
+    '    Implements various learning rate scheduling strategies.',
+    '    ',
+    '    Supports:',
+    '    - Exponential decay',
+    '    - Step decay',
+    '    - Cosine annealing',
+    '    - Plateau-based reduction',
+    '    """',
+    '    ',
+    '    def __init__(self, initial_lr: float = 0.001, strategy: str = "exponential"):',
+    '        self.initial_lr = initial_lr',
+    '        self.current_lr = initial_lr',
+    '        self.strategy = strategy',
+    '        self.iteration = 0',
+    '        self.best_loss = float("inf")',
+    '        self.patience_counter = 0',
+    '    ',
+    '    def step(self, current_loss: Optional[float] = None) -> float:',
+    '        """Update learning rate based on strategy."""',
+    '        self.iteration += 1',
+    '        ',
+    '        if self.strategy == "exponential":',
+    '            self.current_lr = self.initial_lr * np.exp(-0.1 * self.iteration)',
+    '        elif self.strategy == "step":',
+    '            self.current_lr = self.initial_lr * (0.1 ** (self.iteration // 30))',
+    '        elif self.strategy == "cosine":',
+    '            self.current_lr = self.initial_lr * (1 + np.cos(np.pi * self.iteration / 100)) / 2',
+    '        elif self.strategy == "plateau" and current_loss is not None:',
+    '            if current_loss < self.best_loss:',
+    '                self.best_loss = current_loss',
+    '                self.patience_counter = 0',
+    '            else:',
+    '                self.patience_counter += 1',
+    '                if self.patience_counter > 10:',
+    '                    self.current_lr *= 0.5',
+    '                    self.patience_counter = 0',
+    '        ',
+    '        return self.current_lr',
+    '',
+    'def parallel_matrix_operations(matrices: List[np.ndarray], operation: callable) -> List[np.ndarray]:',
+    '    """Execute matrix operations in parallel."""',
+    '    with ThreadPoolExecutor(max_workers=4) as executor:',
+    '        results = list(executor.map(operation, matrices))',
+    '    return results',
+    '',
+    'def plot_convergence(losses: List[float], title: str = "Training Convergence"):',
+    '    """',
+    '    Create publication-quality convergence plots.',
+    '    """',
+    '    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))',
+    '    ',
+    '    # Loss over iterations',
+    '    ax1.plot(losses, linewidth=2)',
+    '    ax1.set_xlabel("Iteration")',
+    '    ax1.set_ylabel("Loss")',
+    '    ax1.set_title(title)',
+    '    ax1.grid(True, alpha=0.3)',
+    '    ax1.set_yscale("log")',
+    '    ',
+    '    # Loss distribution',
+    '    ax2.hist(losses, bins=50, alpha=0.7, edgecolor="black")',
+    '    ax2.set_xlabel("Loss Value")',
+    '    ax2.set_ylabel("Frequency")',
+    '    ax2.set_title("Loss Distribution")',
+    '    ',
+    '    plt.tight_layout()',
     '    plt.show()',
-    'try:',
-    '    result = decompose_matrix(data, rank)',
-    'except np.linalg.LinAlgError:',
-    '    print("Matrix decomposition failed")',
-    '    return None',
-    'assert rank > 0, "Rank must be positive"',
-    'if data.shape[0] < rank:',
-    '    raise ValueError("Rank too large")',
-    '# Add regularization term',
-    'l2_penalty = 0.001 * np.sum(U**2 + V**2)',
-    'total_loss = reconstruction_loss + l2_penalty'
+    '',
+    'class RobustDecomposition:',
+    '    """',
+    '    Robust matrix decomposition with multiple backend support.',
+    '    """',
+    '    ',
+    '    def __init__(self, method: str = "svd"):',
+    '        self.method = method',
+    '        self.history = {"loss": [], "rank": [], "time": []}',
+    '    ',
+    '    def fit(self, matrix: np.ndarray, rank: int) -> Tuple[np.ndarray, np.ndarray]:',
+    '        """Fit decomposition model."""',
+    '        start_time = time.time()',
+    '        ',
+    '        if self.method == "svd":',
+    '            U, V = self._svd_decomposition(matrix, rank)',
+    '        elif self.method == "nmf":',
+    '            U, V = self._nmf_decomposition(matrix, rank)',
+    '        elif self.method == "pca":',
+    '            U, V = self._pca_decomposition(matrix, rank)',
+    '        else:',
+    '            raise ValueError(f"Unknown method: {self.method}")',
+    '        ',
+    '        elapsed = time.time() - start_time',
+    '        self.history["time"].append(elapsed)',
+    '        ',
+    '        return U, V',
+    '',
+    '# Add regularization and constraints',
+    'def add_l1_regularization(weights: np.ndarray, lambda_l1: float) -> float:',
+    '    """L1 regularization term."""',
+    '    return lambda_l1 * np.sum(np.abs(weights))',
+    '',
+    'def add_l2_regularization(weights: np.ndarray, lambda_l2: float) -> float:',
+    '    """L2 regularization term."""',
+    '    return lambda_l2 * np.sum(weights ** 2)',
+    '',
+    'def elastic_net_regularization(weights: np.ndarray, lambda_l1: float, lambda_l2: float, alpha: float) -> float:',
+    '    """Elastic net combining L1 and L2."""',
+    '    l1_term = add_l1_regularization(weights, lambda_l1)',
+    '    l2_term = add_l2_regularization(weights, lambda_l2)',
+    '    return alpha * l1_term + (1 - alpha) * l2_term'
 ];
 
 const newDocEntries = {
     doc1: [
-        'validate_input(matrix)',
-        '  Validates input matrix dimensions',
-        'plot_convergence(losses)',
-        '  Visualizes training progress',
-        'AdaptiveLearningRate.update()',
-        '  Adjusts learning rate dynamically',
-        'PCA.fit_transform(data)',
-        '  Alternative decomposition method'
+        'ValidationError',
+        '  Custom exception for matrix validation',
+        '  Inherits from: Exception',
+        '',
+        'compute_svd_threshold(shape, rank)',
+        '  Calculates optimal SVD truncation threshold',
+        '  Uses: Marchenko-Pastur distribution',
+        '  Returns: float threshold value',
+        '',
+        'AdaptiveLearningRate',
+        '  Learning rate scheduler with multiple strategies',
+        '  Methods: step(), reset(), get_history()',
+        '',
+        'RobustDecomposition',
+        '  Multi-backend matrix decomposition',
+        '  Backends: SVD, NMF, PCA, ICA',
+        '  Methods: fit(), transform(), fit_transform()',
+        '',
+        'parallel_matrix_operations(matrices, op)',
+        '  Concurrent matrix processing',
+        '  Max workers: 4',
+        '  Returns: List[ndarray]',
+        '',
+        'elastic_net_regularization(weights, l1, l2, alpha)',
+        '  Combined L1/L2 regularization',
+        '  Alpha: mixing parameter [0,1]'
     ],
     doc2: [
-        'Validation Best Practices:',
-        '- Always check input dimensions',
-        '- Verify matrix is not singular',
-        '- Handle edge cases gracefully',
+        'Performance Optimization Strategies:',
         '',
-        'Learning Rate Scheduling:',
-        '- Start with higher learning rate',
-        '- Reduce when loss plateaus',
-        '- Monitor validation metrics',
+        'Memory Management:',
+        '- Use np.float32 for large matrices',
+        '- Implement chunked processing for > 10GB',
+        '- Clear intermediate results with del',
+        '- Monitor memory usage with tracemalloc',
         '',
-        'Alternative Methods:',
-        '- PCA for exploratory analysis',
-        '- Non-negative matrix factorization',
-        '- Randomized algorithms for speed'
+        'Computational Efficiency:',
+        '- Leverage BLAS/LAPACK backends',
+        '- Use scipy.sparse for sparse matrices',
+        '- Enable MKL threading: export MKL_NUM_THREADS=4',
+        '- Profile with line_profiler',
+        '',
+        'Numerical Stability:',
+        '- Condition number checking',
+        '- Iterative refinement for ill-conditioned problems',
+        '- Use np.linalg.lstsq for overdetermined systems',
+        '- Implement gradient clipping: torch.nn.utils.clip_grad_norm_',
+        '',
+        'Distributed Computing:',
+        '- Dask for out-of-core computation',
+        '- Ray for distributed training',
+        '- Horovod for multi-GPU setups',
+        '',
+        'Algorithm Selection:',
+        '- SVD: Best for general decomposition',
+        '- Randomized SVD: For approximate solutions',
+        '- QR: When orthogonality is critical',
+        '- Cholesky: For positive definite matrices'
     ],
     doc3: [
-        'Input Validation Example:',
+        '# Advanced Usage Patterns',
         '',
-        'if not validate_input(data):',
-        '    raise ValueError("Invalid input")',
+        '## Distributed Decomposition',
+        'import dask.array as da',
+        'from dask.distributed import Client',
         '',
-        'Visualization Example:',
+        'client = Client("scheduler:8786")',
+        'x_dask = da.from_array(large_matrix, chunks=(1000, 1000))',
+        'u, s, v = da.linalg.svd(x_dask)',
+        'result = u.compute()',
         '',
-        'losses = []',
-        'for epoch in range(epochs):',
-        '    loss = train_step()',
-        '    losses.append(loss)',
-        'plot_convergence(losses)',
+        '## GPU Acceleration',
+        'import cupy as cp',
         '',
-        'Adaptive Learning:',
+        'gpu_matrix = cp.asarray(matrix)',
+        'u_gpu, s_gpu, v_gpu = cp.linalg.svd(gpu_matrix)',
+        'result = cp.asnumpy(u_gpu)',
         '',
-        'scheduler = AdaptiveLearningRate(0.01)',
-        'for epoch in range(epochs):',
-        '    lr = scheduler.get_lr()',
-        '    optimizer.lr = lr'
+        '## Incremental SVD',
+        'from sklearn.decomposition import IncrementalPCA',
+        '',
+        'ipca = IncrementalPCA(n_components=10, batch_size=100)',
+        'for batch in data_generator():',
+        '    ipca.partial_fit(batch)',
+        '',
+        '## Robust PCA (RPCA)',
+        'def robust_pca(M, lambda_=None):',
+        '    """Decompose M = L + S (low-rank + sparse)"""',
+        '    if lambda_ is None:',
+        '        lambda_ = 1 / np.sqrt(max(M.shape))',
+        '    # ... implementation ...',
+        '',
+        '## Cross-validation for rank selection',
+        'from sklearn.model_selection import cross_val_score',
+        '',
+        'ranks = range(5, 50, 5)',
+        'scores = []',
+        'for rank in ranks:',
+        '    decomposer = TruncatedSVD(n_components=rank)',
+        '    score = cross_val_score(decomposer, X, cv=5)',
+        '    scores.append(score.mean())',
+        '',
+        '## Streaming updates',
+        'class StreamingSVD:',
+        '    def __init__(self, rank):',
+        '        self.rank = rank',
+        '        self.mean = None',
+        '        self.components = None',
+        '    ',
+        '    def partial_fit(self, X_batch):',
+        '        # Online mean update',
+        '        if self.mean is None:',
+        '            self.mean = X_batch.mean(axis=0)',
+        '        else:',
+        '            self.mean = 0.9 * self.mean + 0.1 * X_batch.mean(axis=0)',
+        '        # ... update components ...'
     ]
 };
 
@@ -372,50 +572,80 @@ function animateChanges() {
     } else {
         // Update main code
         if (Math.random() < 0.7) {
-            // Add code line
-            const newLine = newCodeLines[Math.floor(Math.random() * newCodeLines.length)];
+            // Sometimes add multiple lines (block of code)
+            const blockSize = Math.random() < 0.3 ? Math.floor(Math.random() * 8) + 3 : 1;
             const insertIndex = Math.floor(Math.random() * (codeContent.length + 1));
-            codeContent.splice(insertIndex, 0, newLine);
+            
+            for (let i = 0; i < blockSize; i++) {
+                const newLine = newCodeLines[Math.floor(Math.random() * newCodeLines.length)];
+                codeContent.splice(insertIndex + i, 0, newLine);
+            }
             
             renderCode();
             
             setTimeout(() => {
-                scrollToLine('codeContent', insertIndex);
+                scrollToLine('codeContent', insertIndex + Math.floor(blockSize / 2));
                 const lines = document.getElementById('codeContent').querySelectorAll('.code-line');
-                if (lines[insertIndex]) {
-                    lines[insertIndex].classList.add('added');
-                    setTimeout(() => {
-                        lines[insertIndex].classList.remove('added');
-                    }, 2000);
+                for (let i = 0; i < blockSize; i++) {
+                    if (lines[insertIndex + i]) {
+                        lines[insertIndex + i].classList.add('added');
+                        setTimeout(() => {
+                            lines[insertIndex + i].classList.remove('added');
+                        }, 2000);
+                    }
                 }
             }, 50);
-        } else if (codeContent.length > 10) {
-            // Modify existing line
-            const modifyIndex = Math.floor(Math.random() * codeContent.length);
-            const originalLine = codeContent[modifyIndex];
-            
-            scrollToLine('codeContent', modifyIndex);
-            
-            const modifications = [
-                originalLine + '  # Updated',
-                originalLine.replace(/matrix/g, 'data'),
-                originalLine.replace(/rank/g, 'components'),
-                originalLine.replace(/gradient/g, 'grad')
-            ];
-            
-            codeContent[modifyIndex] = modifications[Math.floor(Math.random() * modifications.length)];
-            
-            renderCode();
-            
-            setTimeout(() => {
+        } else if (codeContent.length > 20) {
+            // Sometimes modify, sometimes delete
+            if (Math.random() < 0.5) {
+                // Delete block of lines
+                const deleteSize = Math.random() < 0.3 ? Math.floor(Math.random() * 5) + 2 : 1;
+                const deleteIndex = Math.floor(Math.random() * (codeContent.length - deleteSize));
+                
+                scrollToLine('codeContent', deleteIndex + Math.floor(deleteSize / 2));
+                
                 const lines = document.getElementById('codeContent').querySelectorAll('.code-line');
-                if (lines[modifyIndex]) {
-                    lines[modifyIndex].classList.add('modified');
-                    setTimeout(() => {
-                        lines[modifyIndex].classList.remove('modified');
-                    }, 2000);
+                for (let i = 0; i < deleteSize; i++) {
+                    if (lines[deleteIndex + i]) {
+                        lines[deleteIndex + i].classList.add('deleted');
+                    }
                 }
-            }, 50);
+                
+                setTimeout(() => {
+                    codeContent.splice(deleteIndex, deleteSize);
+                    renderCode();
+                }, 1000);
+            } else {
+                // Modify existing line
+                const modifyIndex = Math.floor(Math.random() * codeContent.length);
+                const originalLine = codeContent[modifyIndex];
+                
+                scrollToLine('codeContent', modifyIndex);
+                
+                const modifications = [
+                    originalLine + '  # Updated',
+                    originalLine.replace(/matrix/g, 'data'),
+                    originalLine.replace(/rank/g, 'components'),
+                    originalLine.replace(/gradient/g, 'grad'),
+                    originalLine.replace(/def /g, 'async def '),
+                    originalLine.replace(/float/g, 'np.float64'),
+                    originalLine.replace(/return/g, 'yield'),
+                ];
+                
+                codeContent[modifyIndex] = modifications[Math.floor(Math.random() * modifications.length)];
+                
+                renderCode();
+                
+                setTimeout(() => {
+                    const lines = document.getElementById('codeContent').querySelectorAll('.code-line');
+                    if (lines[modifyIndex]) {
+                        lines[modifyIndex].classList.add('modified');
+                        setTimeout(() => {
+                            lines[modifyIndex].classList.remove('modified');
+                        }, 2000);
+                    }
+                }, 50);
+            }
         }
     }
     
