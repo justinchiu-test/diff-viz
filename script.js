@@ -13,7 +13,6 @@ class DiffVisualizer {
         this.solutionFileName = document.getElementById('solutionFileName');
         this.currentPhaseEl = document.getElementById('currentPhase');
         this.timestepCountEl = document.getElementById('timestepCount');
-        this.progressFill = document.querySelector('.progress-fill');
         this.phaseIndicator = document.querySelector('.phase-indicator');
         
         this.maxTimesteps = 3; // We have time0, time1, time2
@@ -403,7 +402,6 @@ if __name__ == "__main__":
 
     async processTimestep(timestep) {
         this.timestepCountEl.textContent = timestep + 1;
-        this.updateProgress();
         
         const timestepKey = `time${timestep}`;
         
@@ -575,10 +573,6 @@ if __name__ == "__main__":
         this.phaseIndicator.className = `phase-indicator phase-${phase}`;
     }
 
-    updateProgress() {
-        const progress = (this.currentTimestep / this.maxTimesteps) * 100;
-        this.progressFill.style.width = `${progress}%`;
-    }
 
     escapeHtml(text) {
         const div = document.createElement('div');

@@ -16,7 +16,6 @@ body {
     display: flex;
     height: 100vh;
     background: #f8f8f8;
-    padding-top: 4px; /* Account for progress bar */
 }
 
 .code-panel {
@@ -144,23 +143,6 @@ body {
     }
 }
 
-/* Progress bar */
-.progress-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: rgba(0, 0, 0, 0.1);
-    z-index: 1001;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #4CAF50, #2196F3);
-    width: 0%;
-    transition: width 0.5s ease;
-}
 
 /* Status badge */
 .status-badge {
