@@ -179,7 +179,7 @@ const docData = {
 };
 
 let animationRunning = true;
-let animationSpeed = 500; // 2 changes per second
+let animationSpeed = 750; // changes every animationSpeed ms
 let iterationCount = 1;
 let timeoutId;
 
