@@ -196,37 +196,6 @@ body {
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
-.controls {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    display: flex;
-    gap: 8px;
-    z-index: 1000;
-}
-
-.control-btn {
-    background: white;
-    color: #333;
-    border: 1px solid #ddd;
-    padding: 6px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 10px;
-    transition: all 0.2s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.control-btn:hover {
-    background: #f8f8f8;
-    border-color: #bbb;
-}
-
-.control-btn.paused {
-    background: #dc3545;
-    color: white;
-    border-color: #dc3545;
-}
 
 /* Syntax highlighting */
 .keyword { 
