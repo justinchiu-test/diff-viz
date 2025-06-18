@@ -15,16 +15,19 @@ body {
 .container {
     display: flex;
     height: 100vh;
-    background: #f0f0f0;
+    background: #f8f8f8;
+    padding-top: 4px; /* Account for progress bar */
 }
 
 .code-panel {
-    width: 40%;
+    width: 50%;
     background: white;
-    border-right: 1px solid #ddd;
     display: flex;
     flex-direction: column;
-    box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    margin: 8px;
+    overflow: hidden;
 }
 
 .code-header {
@@ -55,7 +58,7 @@ body {
     display: flex;
     align-items: flex-start;
     min-height: 16px;
-    transition: all 0.3s ease;
+    transition: all 0.4s ease;
     padding: 1px 0;
     border-left: 3px solid transparent;
 }
@@ -76,64 +79,11 @@ body {
     padding-right: 12px;
 }
 
-.docs-panel {
-    width: 60%;
-    display: flex;
-    gap: 1px;
-    background: #e8e8e8;
-}
-
-.doc-column {
-    flex: 1;
-    background: white;
-    border-right: 1px solid #ddd;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.doc-column:last-child {
-    border-right: none;
-}
-
-.doc-header {
-    background: #f8f8f8;
-    padding: 6px 8px;
-    border-bottom: 1px solid #e0e0e0;
-    font-size: 10px;
-    color: #666;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.doc-content {
-    flex: 1;
-    overflow-y: auto;
-    font-size: 9px;
-    line-height: 12px;
-    padding: 4px;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
-}
-
-/* Hide scrollbar for Chrome, Safari and Opera */
-.doc-content::-webkit-scrollbar {
-    display: none;
-}
-
-.doc-line {
-    padding: 1px 4px;
-    margin: 1px 0;
-    transition: all 0.3s ease;
-    border-radius: 2px;
-}
 
 .added {
-    background-color: #e6ffed;
-    border-left: 3px solid #28a745;
-    animation: slideInGreen 0.5s ease;
+    background-color: #d4edda !important;
+    animation: highlightGreen 0.6s ease;
+    transform: translateX(0);
 }
 
 .deleted {
@@ -150,14 +100,19 @@ body {
     animation: slideInYellow 0.5s ease;
 }
 
-@keyframes slideInGreen {
-    from { 
+@keyframes highlightGreen {
+    0% { 
         background-color: #28a745;
         color: white;
-        transform: translateX(-5px);
+        transform: translateX(-8px);
     }
-    to { 
-        background-color: #e6ffed;
+    20% {
+        background-color: #28a745;
+        color: white;
+        transform: translateX(0);
+    }
+    100% { 
+        background-color: #d4edda;
         color: inherit;
         transform: translateX(0);
     }
@@ -189,18 +144,73 @@ body {
     }
 }
 
-.iteration-badge {
-    position: absolute;
-    bottom: 20px;
+/* Progress bar */
+.progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 1001;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #2196F3);
+    width: 0%;
+    transition: width 0.5s ease;
+}
+
+/* Status badge */
+.status-badge {
+    position: fixed;
+    top: 20px;
     right: 20px;
-    background: #333;
+    background: rgba(0, 0, 0, 0.8);
     color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-size: 13px;
+    font-weight: 500;
     z-index: 1000;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    backdrop-filter: blur(10px);
+}
+
+/* Phase indicator */
+.phase-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+    background: #666;
+    transition: all 0.3s ease;
+}
+
+.phase-indicator.phase-loading {
+    background: #ff9800;
+    animation: pulse 1s infinite;
+}
+
+.phase-indicator.phase-codebank {
+    background: #2196F3;
+    animation: pulse 1s infinite;
+}
+
+.phase-indicator.phase-solution {
+    background: #4CAF50;
+    animation: pulse 1s infinite;
+}
+
+.phase-indicator.phase-complete {
+    background: #9C27B0;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.1); }
 }
 
 

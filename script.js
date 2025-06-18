@@ -1,715 +1,598 @@
-const codeContent = [
-    '#!/usr/bin/env python3',
-    '"""',
-    'Decomposition algorithm with real-time updates.',
-    'Implements gradient descent with momentum for optimization.',
-    '"""',
-    '',
-    'import numpy as np',
-    'import torch',
-    'from typing import Dict, List, Tuple, Optional',
-    'from dataclasses import dataclass',
-    '',
-    '@dataclass',
-    'class DecompositionConfig:',
-    '    learning_rate: float = 0.001',
-    '    momentum: float = 0.9',
-    '    epsilon: float = 1e-8',
-    '    max_iterations: int = 1000',
-    '',
-    'def decompose_matrix(matrix: np.ndarray, rank: int) -> Tuple[np.ndarray, np.ndarray]:',
-    '    """',
-    '    Perform matrix decomposition using SVD.',
-    '    ',
-    '    Args:',
-    '        matrix: Input matrix to decompose',
-    '        rank: Target rank for decomposition',
-    '    ',
-    '    Returns:',
-    '        Tuple of decomposed matrices (U, V)',
-    '    """',
-    '    U, s, Vt = np.linalg.svd(matrix, full_matrices=False)',
-    '    U_reduced = U[:, :rank]',
-    '    s_reduced = s[:rank]',
-    '    Vt_reduced = Vt[:rank, :]',
-    '    ',
-    '    return U_reduced @ np.diag(s_reduced), Vt_reduced',
-    '',
-    'class GradientOptimizer:',
-    '    def __init__(self, config: DecompositionConfig):',
-    '        self.config = config',
-    '        self.momentum_buffer = None',
-    '        self.iteration = 0',
-    '    ',
-    '    def step(self, gradient: np.ndarray) -> np.ndarray:',
-    '        if self.momentum_buffer is None:',
-    '            self.momentum_buffer = np.zeros_like(gradient)',
-    '        ',
-    '        self.momentum_buffer = (self.config.momentum * self.momentum_buffer + ',
-    '                               gradient)',
-    '        ',
-    '        update = self.config.learning_rate * self.momentum_buffer',
-    '        self.iteration += 1',
-    '        ',
-    '        return update',
-    '',
-    'def compute_loss(prediction: np.ndarray, target: np.ndarray) -> float:',
-    '    """Compute reconstruction loss."""',
-    '    return np.mean((prediction - target) ** 2)',
-    '',
-    'def train_decomposition(data: np.ndarray, epochs: int = 100):',
-    '    """Main training loop for decomposition."""',
-    '    config = DecompositionConfig()',
-    '    optimizer = GradientOptimizer(config)',
-    '    ',
-    '    for epoch in range(epochs):',
-    '        # Forward pass',
-    '        U, V = decompose_matrix(data, rank=10)',
-    '        reconstruction = U @ V',
-    '        ',
-    '        # Compute loss and gradients',
-    '        loss = compute_loss(reconstruction, data)',
-    '        gradient = 2 * (reconstruction - data) / data.size',
-    '        ',
-    '        # Update parameters',
-    '        update = optimizer.step(gradient)',
-    '        ',
-    '        if epoch % 10 == 0:',
-    '            print(f"Epoch {epoch}, Loss: {loss:.6f}")',
-    '',
-    'if __name__ == "__main__":',
-    '    # Generate test data',
-    '    np.random.seed(42)',
-    '    test_matrix = np.random.randn(100, 50)',
-    '    ',
-    '    # Run decomposition',
-    '    train_decomposition(test_matrix, epochs=200)'
-];
+// Simple diff visualization implementation
 
-const docData = {
-    doc1: [
-        'decompose_matrix(matrix, rank)',
-        '  Performs SVD-based matrix decomposition',
-        '  Parameters:',
-        '    matrix: numpy.ndarray',
-        '    rank: int',
-        '  Returns: Tuple[ndarray, ndarray]',
-        '',
-        'GradientOptimizer.step(gradient)',
-        '  Updates parameters using momentum',
-        '  Parameters:',
-        '    gradient: numpy.ndarray',
-        '  Returns: numpy.ndarray',
-        '',
-        'compute_loss(prediction, target)',
-        '  Calculates MSE reconstruction loss',
-        '  Parameters:',
-        '    prediction: numpy.ndarray',
-        '    target: numpy.ndarray',
-        '  Returns: float',
-        '',
-        'train_decomposition(data, epochs)',
-        '  Main training loop implementation',
-        '  Parameters:',
-        '    data: numpy.ndarray',
-        '    epochs: int = 100',
-        '  Returns: None'
-    ],
-    doc2: [
-        'Matrix Decomposition:',
-        '- Uses truncated SVD for efficiency',
-        '- Rank should be << min(m,n)',
-        '- Memory usage scales as O(rank*m)',
-        '',
-        'Time Complexity: O(min(m²n, mn²))',
-        'Space Complexity: O(mn)',
-        '',
-        'Implementation Details:',
-        '- Truncates to specified rank',
-        '- Returns U_reduced and V_reduced',
-        '- Maintains numerical stability',
-        '',
-        'Optimization Strategy:',
-        '- Momentum helps escape local minima',
-        '- Learning rate scheduling recommended',
-        '- Gradient clipping may be beneficial',
-        '',
-        'Mathematical Formula:',
-        'm_t = β₁m_{t-1} + ∇f(θ)',
-        'θ_{t+1} = θ_t - α * m_t',
-        '',
-        'Where:',
-        '- β₁ is momentum coefficient',
-        '- α is learning rate',
-        '- ∇f(θ) is gradient'
-    ],
-    doc3: [
-        'Basic Usage:',
-        '',
-        'import numpy as np',
-        'from decomposition import train_decomposition',
-        '',
-        '# Create test data',
-        'data = np.random.randn(1000, 100)',
-        'train_decomposition(data, epochs=50)',
-        '',
-        'Advanced Configuration:',
-        '',
-        'config = DecompositionConfig(',
-        '    learning_rate=0.01,',
-        '    momentum=0.95,',
-        '    max_iterations=2000',
-        ')',
-        '',
-        'Custom Optimization:',
-        '',
-        'optimizer = GradientOptimizer(config)',
-        'for i in range(100):',
-        '    grad = compute_gradient()',
-        '    update = optimizer.step(grad)',
-        '    apply_update(update)',
-        '',
-        'Batch Processing:',
-        '',
-        'for batch in data_loader:',
-        '    U, V = decompose_matrix(batch, rank=20)',
-        '    loss = compute_loss(U @ V, batch)',
-        '    print(f"Batch loss: {loss}")'
-    ]
-};
+class DiffVisualizer {
+    constructor() {
+        this.currentTimestep = 0;
+        this.currentPhase = 'loading';
+        this.isRunning = false;
+        
+        // DOM elements
+        this.codebankContent = document.getElementById('codebankContent');
+        this.solutionContent = document.getElementById('solutionContent');
+        this.codebankFileName = document.getElementById('codebankFileName');
+        this.solutionFileName = document.getElementById('solutionFileName');
+        this.currentPhaseEl = document.getElementById('currentPhase');
+        this.timestepCountEl = document.getElementById('timestepCount');
+        this.progressFill = document.querySelector('.progress-fill');
+        this.phaseIndicator = document.querySelector('.phase-indicator');
+        
+        this.maxTimesteps = 3; // We have time0, time1, time2
+        
+        // Embedded sample data
+        this.sampleData = {
+            time0: {
+                codebank_prev: `#!/usr/bin/env python3
+"""
+Basic matrix operations library.
+"""
 
-let animationRunning = true;
-let animationSpeed = 750; // changes every animationSpeed ms
-let iterationCount = 1;
-let timeoutId;
+import numpy as np
 
-const newCodeLines = [
-    'from sklearn.decomposition import PCA, TruncatedSVD',
-    'from sklearn.preprocessing import StandardScaler',
-    'import matplotlib.pyplot as plt',
-    'import seaborn as sns',
-    'import logging',
-    'from concurrent.futures import ThreadPoolExecutor',
-    'from functools import lru_cache',
-    'import warnings',
-    '',
-    'logger = logging.getLogger(__name__)',
-    'warnings.filterwarnings("ignore", category=FutureWarning)',
-    '',
-    'class ValidationError(Exception):',
-    '    """Custom exception for validation errors."""',
-    '    pass',
-    '',
-    'def validate_input(matrix: np.ndarray) -> bool:',
-    '    """',
-    '    Comprehensive input validation for matrices.',
-    '    ',
-    '    Checks:',
-    '    - Matrix dimensions',
-    '    - NaN/Inf values',
-    '    - Data type compatibility',
-    '    """',
-    '    if matrix.ndim != 2:',
-    '        raise ValidationError(f"Expected 2D array, got {matrix.ndim}D")',
-    '    ',
-    '    if matrix.size == 0:',
-    '        raise ValidationError("Empty matrix provided")',
-    '    ',
-    '    if np.any(np.isnan(matrix)) or np.any(np.isinf(matrix)):',
-    '        raise ValidationError("Matrix contains NaN or Inf values")',
-    '    ',
-    '    return True',
-    '',
-    '@lru_cache(maxsize=128)',
-    'def compute_svd_threshold(matrix_shape: Tuple[int, int], rank: int) -> float:',
-    '    """Calculate optimal threshold for SVD truncation."""',
-    '    m, n = matrix_shape',
-    '    return rank * np.sqrt(2 * (m + n) + 1)',
-    '',
-    'class AdaptiveLearningRate:',
-    '    """',
-    '    Implements various learning rate scheduling strategies.',
-    '    ',
-    '    Supports:',
-    '    - Exponential decay',
-    '    - Step decay',
-    '    - Cosine annealing',
-    '    - Plateau-based reduction',
-    '    """',
-    '    ',
-    '    def __init__(self, initial_lr: float = 0.001, strategy: str = "exponential"):',
-    '        self.initial_lr = initial_lr',
-    '        self.current_lr = initial_lr',
-    '        self.strategy = strategy',
-    '        self.iteration = 0',
-    '        self.best_loss = float("inf")',
-    '        self.patience_counter = 0',
-    '    ',
-    '    def step(self, current_loss: Optional[float] = None) -> float:',
-    '        """Update learning rate based on strategy."""',
-    '        self.iteration += 1',
-    '        ',
-    '        if self.strategy == "exponential":',
-    '            self.current_lr = self.initial_lr * np.exp(-0.1 * self.iteration)',
-    '        elif self.strategy == "step":',
-    '            self.current_lr = self.initial_lr * (0.1 ** (self.iteration // 30))',
-    '        elif self.strategy == "cosine":',
-    '            self.current_lr = self.initial_lr * (1 + np.cos(np.pi * self.iteration / 100)) / 2',
-    '        elif self.strategy == "plateau" and current_loss is not None:',
-    '            if current_loss < self.best_loss:',
-    '                self.best_loss = current_loss',
-    '                self.patience_counter = 0',
-    '            else:',
-    '                self.patience_counter += 1',
-    '                if self.patience_counter > 10:',
-    '                    self.current_lr *= 0.5',
-    '                    self.patience_counter = 0',
-    '        ',
-    '        return self.current_lr',
-    '',
-    'def parallel_matrix_operations(matrices: List[np.ndarray], operation: callable) -> List[np.ndarray]:',
-    '    """Execute matrix operations in parallel."""',
-    '    with ThreadPoolExecutor(max_workers=4) as executor:',
-    '        results = list(executor.map(operation, matrices))',
-    '    return results',
-    '',
-    'def plot_convergence(losses: List[float], title: str = "Training Convergence"):',
-    '    """',
-    '    Create publication-quality convergence plots.',
-    '    """',
-    '    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))',
-    '    ',
-    '    # Loss over iterations',
-    '    ax1.plot(losses, linewidth=2)',
-    '    ax1.set_xlabel("Iteration")',
-    '    ax1.set_ylabel("Loss")',
-    '    ax1.set_title(title)',
-    '    ax1.grid(True, alpha=0.3)',
-    '    ax1.set_yscale("log")',
-    '    ',
-    '    # Loss distribution',
-    '    ax2.hist(losses, bins=50, alpha=0.7, edgecolor="black")',
-    '    ax2.set_xlabel("Loss Value")',
-    '    ax2.set_ylabel("Frequency")',
-    '    ax2.set_title("Loss Distribution")',
-    '    ',
-    '    plt.tight_layout()',
-    '    plt.show()',
-    '',
-    'class RobustDecomposition:',
-    '    """',
-    '    Robust matrix decomposition with multiple backend support.',
-    '    """',
-    '    ',
-    '    def __init__(self, method: str = "svd"):',
-    '        self.method = method',
-    '        self.history = {"loss": [], "rank": [], "time": []}',
-    '    ',
-    '    def fit(self, matrix: np.ndarray, rank: int) -> Tuple[np.ndarray, np.ndarray]:',
-    '        """Fit decomposition model."""',
-    '        start_time = time.time()',
-    '        ',
-    '        if self.method == "svd":',
-    '            U, V = self._svd_decomposition(matrix, rank)',
-    '        elif self.method == "nmf":',
-    '            U, V = self._nmf_decomposition(matrix, rank)',
-    '        elif self.method == "pca":',
-    '            U, V = self._pca_decomposition(matrix, rank)',
-    '        else:',
-    '            raise ValueError(f"Unknown method: {self.method}")',
-    '        ',
-    '        elapsed = time.time() - start_time',
-    '        self.history["time"].append(elapsed)',
-    '        ',
-    '        return U, V',
-    '',
-    '# Add regularization and constraints',
-    'def add_l1_regularization(weights: np.ndarray, lambda_l1: float) -> float:',
-    '    """L1 regularization term."""',
-    '    return lambda_l1 * np.sum(np.abs(weights))',
-    '',
-    'def add_l2_regularization(weights: np.ndarray, lambda_l2: float) -> float:',
-    '    """L2 regularization term."""',
-    '    return lambda_l2 * np.sum(weights ** 2)',
-    '',
-    'def elastic_net_regularization(weights: np.ndarray, lambda_l1: float, lambda_l2: float, alpha: float) -> float:',
-    '    """Elastic net combining L1 and L2."""',
-    '    l1_term = add_l1_regularization(weights, lambda_l1)',
-    '    l2_term = add_l2_regularization(weights, lambda_l2)',
-    '    return alpha * l1_term + (1 - alpha) * l2_term'
-];
+def add_matrices(a, b):
+    """Add two matrices."""
+    return a + b
 
-const newDocEntries = {
-    doc1: [
-        'ValidationError',
-        '  Custom exception for matrix validation',
-        '  Inherits from: Exception',
-        '',
-        'compute_svd_threshold(shape, rank)',
-        '  Calculates optimal SVD truncation threshold',
-        '  Uses: Marchenko-Pastur distribution',
-        '  Returns: float threshold value',
-        '',
-        'AdaptiveLearningRate',
-        '  Learning rate scheduler with multiple strategies',
-        '  Methods: step(), reset(), get_history()',
-        '',
-        'RobustDecomposition',
-        '  Multi-backend matrix decomposition',
-        '  Backends: SVD, NMF, PCA, ICA',
-        '  Methods: fit(), transform(), fit_transform()',
-        '',
-        'parallel_matrix_operations(matrices, op)',
-        '  Concurrent matrix processing',
-        '  Max workers: 4',
-        '  Returns: List[ndarray]',
-        '',
-        'elastic_net_regularization(weights, l1, l2, alpha)',
-        '  Combined L1/L2 regularization',
-        '  Alpha: mixing parameter [0,1]'
-    ],
-    doc2: [
-        'Performance Optimization Strategies:',
-        '',
-        'Memory Management:',
-        '- Use np.float32 for large matrices',
-        '- Implement chunked processing for > 10GB',
-        '- Clear intermediate results with del',
-        '- Monitor memory usage with tracemalloc',
-        '',
-        'Computational Efficiency:',
-        '- Leverage BLAS/LAPACK backends',
-        '- Use scipy.sparse for sparse matrices',
-        '- Enable MKL threading: export MKL_NUM_THREADS=4',
-        '- Profile with line_profiler',
-        '',
-        'Numerical Stability:',
-        '- Condition number checking',
-        '- Iterative refinement for ill-conditioned problems',
-        '- Use np.linalg.lstsq for overdetermined systems',
-        '- Implement gradient clipping: torch.nn.utils.clip_grad_norm_',
-        '',
-        'Distributed Computing:',
-        '- Dask for out-of-core computation',
-        '- Ray for distributed training',
-        '- Horovod for multi-GPU setups',
-        '',
-        'Algorithm Selection:',
-        '- SVD: Best for general decomposition',
-        '- Randomized SVD: For approximate solutions',
-        '- QR: When orthogonality is critical',
-        '- Cholesky: For positive definite matrices'
-    ],
-    doc3: [
-        '# Advanced Usage Patterns',
-        '',
-        '## Distributed Decomposition',
-        'import dask.array as da',
-        'from dask.distributed import Client',
-        '',
-        'client = Client("scheduler:8786")',
-        'x_dask = da.from_array(large_matrix, chunks=(1000, 1000))',
-        'u, s, v = da.linalg.svd(x_dask)',
-        'result = u.compute()',
-        '',
-        '## GPU Acceleration',
-        'import cupy as cp',
-        '',
-        'gpu_matrix = cp.asarray(matrix)',
-        'u_gpu, s_gpu, v_gpu = cp.linalg.svd(gpu_matrix)',
-        'result = cp.asnumpy(u_gpu)',
-        '',
-        '## Incremental SVD',
-        'from sklearn.decomposition import IncrementalPCA',
-        '',
-        'ipca = IncrementalPCA(n_components=10, batch_size=100)',
-        'for batch in data_generator():',
-        '    ipca.partial_fit(batch)',
-        '',
-        '## Robust PCA (RPCA)',
-        'def robust_pca(M, lambda_=None):',
-        '    """Decompose M = L + S (low-rank + sparse)"""',
-        '    if lambda_ is None:',
-        '        lambda_ = 1 / np.sqrt(max(M.shape))',
-        '    # ... implementation ...',
-        '',
-        '## Cross-validation for rank selection',
-        'from sklearn.model_selection import cross_val_score',
-        '',
-        'ranks = range(5, 50, 5)',
-        'scores = []',
-        'for rank in ranks:',
-        '    decomposer = TruncatedSVD(n_components=rank)',
-        '    score = cross_val_score(decomposer, X, cv=5)',
-        '    scores.append(score.mean())',
-        '',
-        '## Streaming updates',
-        'class StreamingSVD:',
-        '    def __init__(self, rank):',
-        '        self.rank = rank',
-        '        self.mean = None',
-        '        self.components = None',
-        '    ',
-        '    def partial_fit(self, X_batch):',
-        '        # Online mean update',
-        '        if self.mean is None:',
-        '            self.mean = X_batch.mean(axis=0)',
-        '        else:',
-        '            self.mean = 0.9 * self.mean + 0.1 * X_batch.mean(axis=0)',
-        '        # ... update components ...'
-    ]
-};
+def multiply_matrices(a, b):
+    """Multiply two matrices."""
+    return np.dot(a, b)`,
+                codebank_next: `#!/usr/bin/env python3
+"""
+Basic matrix operations library.
+Enhanced with input validation.
+"""
 
-function applySyntaxHighlighting(text) {
-    return text
-        .replace(/\b(def|class|import|from|if|else|elif|for|while|return|try|except|finally|with|as|in|and|or|not|is|lambda|yield|async|await)\b/g, '<span class="keyword">$1</span>')
-        .replace(/"""[\s\S]*?"""/g, '<span class="comment">$&</span>')
-        .replace(/#.*$/gm, '<span class="comment">$&</span>')
-        .replace(/"([^"]*)"/g, '<span class="string">"$1"</span>')
-        .replace(/'([^']*)'/g, '<span class="string">\'$1\'</span>')
-        .replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g, '<span class="function">$1</span>(')
-        .replace(/\b\d+\.?\d*\b/g, '<span class="number">$&</span>');
-}
+import numpy as np
 
-function renderCode() {
-    const container = document.getElementById('codeContent');
-    container.innerHTML = '';
+def validate_input(matrix):
+    """Validate matrix input."""
+    if not isinstance(matrix, np.ndarray):
+        raise TypeError("Input must be a numpy array")
+    return True
+
+def add_matrices(a, b):
+    """Add two matrices with validation."""
+    validate_input(a)
+    validate_input(b)
+    return a + b
+
+def multiply_matrices(a, b):
+    """Multiply two matrices with validation."""
+    validate_input(a)
+    validate_input(b)
+    return np.dot(a, b)`,
+                solution_prev: `import numpy as np
+from codebank import add_matrices, multiply_matrices
+
+# Test basic operations
+a = np.array([[1, 2], [3, 4]])
+b = np.array([[5, 6], [7, 8]])
+
+result_add = add_matrices(a, b)
+result_mult = multiply_matrices(a, b)
+
+print("Addition result:", result_add)
+print("Multiplication result:", result_mult)`,
+                solution_next: `import numpy as np
+from codebank import add_matrices, multiply_matrices
+
+# Test enhanced operations with error handling
+a = np.array([[1, 2], [3, 4]])
+b = np.array([[5, 6], [7, 8]])
+
+try:
+    result_add = add_matrices(a, b)
+    result_mult = multiply_matrices(a, b)
     
-    codeContent.forEach((line, index) => {
-        const lineDiv = document.createElement('div');
-        lineDiv.className = 'code-line';
-        
-        const lineNumber = document.createElement('div');
-        lineNumber.className = 'line-number';
-        lineNumber.textContent = index + 1;
-        
-        const lineContent = document.createElement('div');
-        lineContent.className = 'line-content';
-        lineContent.innerHTML = applySyntaxHighlighting(line);
-        
-        lineDiv.appendChild(lineNumber);
-        lineDiv.appendChild(lineContent);
-        container.appendChild(lineDiv);
-    });
-}
-
-function renderDoc(docId, content) {
-    const container = document.getElementById(docId);
-    container.innerHTML = '';
+    print("Addition result:", result_add)
+    print("Multiplication result:", result_mult)
     
-    content.forEach(line => {
-        const lineDiv = document.createElement('div');
-        lineDiv.className = 'doc-line';
-        lineDiv.textContent = line;
-        container.appendChild(lineDiv);
-    });
-}
-
-function scrollToLine(containerId, lineIndex) {
-    const container = document.getElementById(containerId);
-    const lines = container.querySelectorAll(containerId === 'codeContent' ? '.code-line' : '.doc-line');
+    # Test with invalid input
+    invalid_input = [[1, 2], [3, 4]]  # Regular list, not numpy array
+    result_invalid = add_matrices(a, invalid_input)
     
-    if (lines[lineIndex]) {
-        const line = lines[lineIndex];
-        const containerRect = container.getBoundingClientRect();
-        const lineRect = line.getBoundingClientRect();
+except TypeError as e:
+    print(f"Error caught: {e}")
+    print("Validation is working correctly!")`
+            },
+            time1: {
+                codebank_prev: `#!/usr/bin/env python3
+"""
+Basic matrix operations library.
+Enhanced with input validation.
+"""
+
+import numpy as np
+
+def validate_input(matrix):
+    """Validate matrix input."""
+    if not isinstance(matrix, np.ndarray):
+        raise TypeError("Input must be a numpy array")
+    return True
+
+def add_matrices(a, b):
+    """Add two matrices with validation."""
+    validate_input(a)
+    validate_input(b)
+    return a + b
+
+def multiply_matrices(a, b):
+    """Multiply two matrices with validation."""
+    validate_input(a)
+    validate_input(b)
+    return np.dot(a, b)`,
+                codebank_next: `#!/usr/bin/env python3
+"""
+Advanced matrix operations library.
+Enhanced with input validation and logging.
+"""
+
+import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
+
+def validate_input(matrix):
+    """Validate matrix input with logging."""
+    if not isinstance(matrix, np.ndarray):
+        logger.error("Invalid input type: %s", type(matrix))
+        raise TypeError("Input must be a numpy array")
+    logger.debug("Input validation passed")
+    return True
+
+def add_matrices(a, b):
+    """Add two matrices with validation."""
+    validate_input(a)
+    validate_input(b)
+    logger.info("Adding matrices of shapes %s and %s", a.shape, b.shape)
+    return a + b
+
+def multiply_matrices(a, b):
+    """Multiply two matrices with validation."""
+    validate_input(a)
+    validate_input(b)
+    logger.info("Multiplying matrices of shapes %s and %s", a.shape, b.shape)
+    return np.dot(a, b)
+
+def transpose_matrix(matrix):
+    """Transpose a matrix."""
+    validate_input(matrix)
+    logger.info("Transposing matrix of shape %s", matrix.shape)
+    return matrix.T`,
+                solution_prev: `import numpy as np
+from codebank import add_matrices, multiply_matrices
+
+# Test enhanced operations with error handling
+a = np.array([[1, 2], [3, 4]])
+b = np.array([[5, 6], [7, 8]])
+
+try:
+    result_add = add_matrices(a, b)
+    result_mult = multiply_matrices(a, b)
+    
+    print("Addition result:", result_add)
+    print("Multiplication result:", result_mult)
+    
+except TypeError as e:
+    print(f"Error caught: {e}")`,
+                solution_next: `import numpy as np
+import logging
+from codebank import add_matrices, multiply_matrices, transpose_matrix
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
+# Test enhanced operations with logging
+a = np.array([[1, 2], [3, 4]])
+b = np.array([[5, 6], [7, 8]])
+
+try:
+    result_add = add_matrices(a, b)
+    result_mult = multiply_matrices(a, b)
+    result_transpose = transpose_matrix(a)
+    
+    print("Addition result:", result_add)
+    print("Multiplication result:", result_mult)
+    print("Transpose result:", result_transpose)
+    
+    # Performance test
+    large_a = np.random.randn(100, 100)
+    large_b = np.random.randn(100, 100)
+    
+    large_result = multiply_matrices(large_a, large_b)
+    print(f"Large matrix multiplication completed: {large_result.shape}")
+    
+except TypeError as e:
+    print(f"Error caught: {e}")`
+            },
+            time2: {
+                codebank_prev: `#!/usr/bin/env python3
+"""
+Advanced matrix operations library.
+Enhanced with input validation and logging.
+"""
+
+import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
+
+def validate_input(matrix):
+    """Validate matrix input with logging."""
+    if not isinstance(matrix, np.ndarray):
+        logger.error("Invalid input type: %s", type(matrix))
+        raise TypeError("Input must be a numpy array")
+    logger.debug("Input validation passed")
+    return True
+
+def add_matrices(a, b):
+    """Add two matrices with validation."""
+    validate_input(a)
+    validate_input(b)
+    logger.info("Adding matrices of shapes %s and %s", a.shape, b.shape)
+    return a + b
+
+def multiply_matrices(a, b):
+    """Multiply two matrices with validation."""
+    validate_input(a)
+    validate_input(b)
+    logger.info("Multiplying matrices of shapes %s and %s", a.shape, b.shape)
+    return np.dot(a, b)
+
+def transpose_matrix(matrix):
+    """Transpose a matrix."""
+    validate_input(matrix)
+    logger.info("Transposing matrix of shape %s", matrix.shape)
+    return matrix.T`,
+                codebank_next: `#!/usr/bin/env python3
+"""
+Professional matrix operations library.
+Enhanced with input validation, logging, and performance optimization.
+"""
+
+import numpy as np
+import logging
+from typing import Union
+import time
+
+logger = logging.getLogger(__name__)
+
+def validate_input(matrix: np.ndarray) -> bool:
+    """Validate matrix input with comprehensive checks."""
+    if not isinstance(matrix, np.ndarray):
+        logger.error("Invalid input type: %s", type(matrix))
+        raise TypeError("Input must be a numpy array")
+    
+    if matrix.size == 0:
+        raise ValueError("Matrix cannot be empty")
+    
+    if not np.isfinite(matrix).all():
+        raise ValueError("Matrix contains invalid values (NaN or Inf)")
+    
+    logger.debug("Input validation passed for matrix shape %s", matrix.shape)
+    return True
+
+def add_matrices(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """Add two matrices with validation and timing."""
+    start_time = time.time()
+    validate_input(a)
+    validate_input(b)
+    
+    if a.shape != b.shape:
+        raise ValueError(f"Matrix shapes don't match: {a.shape} vs {b.shape}")
+    
+    result = a + b
+    elapsed = time.time() - start_time
+    logger.info("Added matrices in %.4f seconds", elapsed)
+    return result
+
+def multiply_matrices(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """Multiply two matrices with validation and timing."""
+    start_time = time.time()
+    validate_input(a)
+    validate_input(b)
+    
+    result = np.dot(a, b)
+    elapsed = time.time() - start_time
+    logger.info("Multiplied matrices in %.4f seconds", elapsed)
+    return result
+
+def transpose_matrix(matrix: np.ndarray) -> np.ndarray:
+    """Transpose a matrix with validation."""
+    validate_input(matrix)
+    logger.info("Transposing matrix of shape %s", matrix.shape)
+    return matrix.T
+
+def matrix_norm(matrix: np.ndarray, ord: Union[int, str] = 'fro') -> float:
+    """Calculate matrix norm."""
+    validate_input(matrix)
+    norm_value = np.linalg.norm(matrix, ord=ord)
+    logger.info("Calculated %s norm: %.6f", ord, norm_value)
+    return norm_value`,
+                solution_prev: `import numpy as np
+import logging
+from codebank import add_matrices, multiply_matrices, transpose_matrix
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
+# Test enhanced operations with logging
+a = np.array([[1, 2], [3, 4]])
+b = np.array([[5, 6], [7, 8]])
+
+try:
+    result_add = add_matrices(a, b)
+    result_mult = multiply_matrices(a, b)
+    result_transpose = transpose_matrix(a)
+    
+    print("Addition result:", result_add)
+    print("Multiplication result:", result_mult)
+    print("Transpose result:", result_transpose)
+    
+except TypeError as e:
+    print(f"Error caught: {e}")`,
+                solution_next: `import numpy as np
+import logging
+from codebank import add_matrices, multiply_matrices, transpose_matrix, matrix_norm
+
+# Configure detailed logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+# Comprehensive testing suite
+def run_tests():
+    """Run comprehensive matrix operation tests."""
+    print("=== Matrix Operations Test Suite ===")
+    
+    # Basic operations
+    a = np.array([[1, 2], [3, 4]])
+    b = np.array([[5, 6], [7, 8]])
+    
+    try:
+        result_add = add_matrices(a, b)
+        result_mult = multiply_matrices(a, b)
+        result_transpose = transpose_matrix(a)
+        norm_value = matrix_norm(a)
         
-        const scrollTop = container.scrollTop + lineRect.top - containerRect.top - containerRect.height / 2 + lineRect.height / 2;
+        print("Addition result:", result_add)
+        print("Multiplication result:", result_mult)
+        print("Transpose result:", result_transpose)
+        print(f"Matrix norm: {norm_value:.6f}")
         
-        container.scrollTo({
-            top: Math.max(0, scrollTop),
-            behavior: 'smooth'
-        });
+        # Performance benchmark
+        print("\\n=== Performance Benchmark ===")
+        sizes = [50, 100, 200]
+        
+        for size in sizes:
+            large_a = np.random.randn(size, size)
+            large_b = np.random.randn(size, size)
+            
+            large_result = multiply_matrices(large_a, large_b)
+            print(f"Completed {size}x{size} matrix multiplication")
+        
+        # Error handling test
+        print("\\n=== Error Handling Test ===")
+        try:
+            invalid_matrix = np.array([[1, np.inf], [3, 4]])
+            add_matrices(a, invalid_matrix)
+        except ValueError as e:
+            print(f"Successfully caught error: {e}")
+            
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+
+if __name__ == "__main__":
+    run_tests()`
+            }
+        };
     }
-}
 
-function animateChanges() {
-    if (!animationRunning) return;
-
-    const changeType = Math.random();
-    
-    if (changeType < 0.5) {
-        // Update documentation
-        const docIds = ['doc1', 'doc2', 'doc3'];
-        const randomDoc = docIds[Math.floor(Math.random() * docIds.length)];
-        const docContent = docData[randomDoc];
-        const newEntries = newDocEntries[randomDoc];
+    async start() {
+        this.isRunning = true;
+        this.updateStatus('loading', 'Initializing...');
         
-        if (Math.random() < 0.7) {
-            // Add large blocks of documentation (10-20 lines)
-            const blockSize = Math.floor(Math.random() * 11) + 10; // 10-20 lines
-            const insertIndex = Math.floor(Math.random() * (docContent.length + 1));
-            
-            for (let i = 0; i < blockSize; i++) {
-                const newEntry = newEntries[Math.floor(Math.random() * newEntries.length)];
-                docContent.splice(insertIndex + i, 0, newEntry);
-            }
-            
-            renderDoc(randomDoc, docContent);
-            
-            setTimeout(() => {
-                scrollToLine(randomDoc, insertIndex + Math.floor(blockSize / 2));
-                const lines = document.getElementById(randomDoc).querySelectorAll('.doc-line');
-                for (let i = 0; i < blockSize; i++) {
-                    if (lines[insertIndex + i]) {
-                        lines[insertIndex + i].classList.add('added');
-                        setTimeout(() => {
-                            lines[insertIndex + i].classList.remove('added');
-                        }, 2000);
-                    }
-                }
-            }, 50);
-        } else if (docContent.length > 10) {
-            // Remove blocks of documentation (but not too much)
-            const maxDeleteSize = Math.min(15, Math.floor(docContent.length * 0.3));
-            const deleteSize = Math.min(Math.floor(Math.random() * 6) + 5, maxDeleteSize);
-            const deleteIndex = Math.floor(Math.random() * Math.max(1, docContent.length - deleteSize));
-            const lines = document.getElementById(randomDoc).querySelectorAll('.doc-line');
-            
-            scrollToLine(randomDoc, deleteIndex + Math.floor(deleteSize / 2));
-            
-            for (let i = 0; i < deleteSize; i++) {
-                if (lines[deleteIndex + i]) {
-                    lines[deleteIndex + i].classList.add('deleted');
-                }
-            }
-            
-            setTimeout(() => {
-                docContent.splice(deleteIndex, deleteSize);
-                renderDoc(randomDoc, docContent);
-            }, 1000);
+        while (this.isRunning && this.currentTimestep < this.maxTimesteps) {
+            await this.processTimestep(this.currentTimestep);
+            this.currentTimestep++;
+            await this.delay(2000); // Pause between timesteps
         }
-    } else {
-        // Update main code
-        if (Math.random() < 0.7) {
-            // Add large blocks of code (10-20 lines)
-            const blockSize = Math.floor(Math.random() * 11) + 10; // 10-20 lines
-            const insertIndex = Math.floor(Math.random() * (codeContent.length + 1));
+        
+        this.updateStatus('complete', 'Animation Complete');
+    }
+
+    async processTimestep(timestep) {
+        this.timestepCountEl.textContent = timestep + 1;
+        this.updateProgress();
+        
+        const timestepKey = `time${timestep}`;
+        
+        // Load initial content for both panels
+        this.updateStatus('loading', 'Loading timestep files...');
+        
+        const codebankPrev = this.sampleData[timestepKey].codebank_prev;
+        const codebankNext = this.sampleData[timestepKey].codebank_next;
+        const solutionPrev = this.sampleData[timestepKey].solution_prev;
+        const solutionNext = this.sampleData[timestepKey].solution_next;
+        
+        // Update file names
+        this.codebankFileName.textContent = 'codebank.py';
+        this.solutionFileName.textContent = `solution${timestep + 1}.py`;
+        
+        // Show initial state (prev versions)
+        this.displayCode(codebankPrev, this.codebankContent);
+        this.displayCode(solutionPrev, this.solutionContent);
+        await this.delay(1000);
+        
+        // Phase 1: Animate codebank changes
+        this.updateStatus('codebank', 'Animating codebank changes');
+        await this.animateDiff(codebankPrev, codebankNext, this.codebankContent);
+        await this.delay(1500);
+        
+        // Phase 2: Animate solution changes
+        this.updateStatus('solution', 'Animating solution changes');
+        await this.animateDiff(solutionPrev, solutionNext, this.solutionContent);
+        await this.delay(1000);
+    }
+
+    displayCode(content, container) {
+        const lines = content.split('\n');
+        container.innerHTML = lines.map((line, i) => `
+            <div class="code-line" data-line="${i + 1}">
+                <div class="line-number">${i + 1}</div>
+                <div class="line-content">${this.escapeHtml(line)}</div>
+            </div>
+        `).join('');
+    }
+
+    async animateDiff(prevContent, nextContent, container) {
+        const prevLines = prevContent.split('\n');
+        const nextLines = nextContent.split('\n');
+        
+        // Find added lines and animate them one by one
+        await this.animateLineByLine(prevLines, nextLines, container);
+    }
+
+    async animateLineByLine(prevLines, nextLines, container) {
+        // Simple line-by-line diff: find which lines are new
+        const maxLines = Math.max(prevLines.length, nextLines.length);
+        
+        // First, display the final content
+        this.displayCode(nextLines.join('\n'), container);
+        
+        // Then animate the added lines
+        for (let i = 0; i < nextLines.length; i++) {
+            const currentLine = nextLines[i];
+            const isNewLine = i >= prevLines.length || currentLine !== prevLines[i];
             
-            for (let i = 0; i < blockSize; i++) {
-                const newLine = newCodeLines[Math.floor(Math.random() * newCodeLines.length)];
-                codeContent.splice(insertIndex + i, 0, newLine);
-            }
-            
-            renderCode();
-            
-            setTimeout(() => {
-                scrollToLine('codeContent', insertIndex + Math.floor(blockSize / 2));
-                const lines = document.getElementById('codeContent').querySelectorAll('.code-line');
-                for (let i = 0; i < blockSize; i++) {
-                    if (lines[insertIndex + i]) {
-                        lines[insertIndex + i].classList.add('added');
-                        setTimeout(() => {
-                            lines[insertIndex + i].classList.remove('added');
-                        }, 2000);
-                    }
-                }
-            }, 50);
-        } else if (codeContent.length > 10) {
-            // Sometimes modify, sometimes delete
-            if (Math.random() < 0.5) {
-                // Delete blocks of lines (but not too much)
-                const maxDeleteSize = Math.min(15, Math.floor(codeContent.length * 0.3));
-                const deleteSize = Math.min(Math.floor(Math.random() * 6) + 5, maxDeleteSize);
-                const deleteIndex = Math.floor(Math.random() * Math.max(1, codeContent.length - deleteSize));
-                
-                scrollToLine('codeContent', deleteIndex + Math.floor(deleteSize / 2));
-                
-                const lines = document.getElementById('codeContent').querySelectorAll('.code-line');
-                for (let i = 0; i < deleteSize; i++) {
-                    if (lines[deleteIndex + i]) {
-                        lines[deleteIndex + i].classList.add('deleted');
-                    }
-                }
-                
-                setTimeout(() => {
-                    codeContent.splice(deleteIndex, deleteSize);
-                    renderCode();
-                }, 1000);
-            } else {
-                // Modify block of lines (5-10)
-                const modifySize = Math.floor(Math.random() * 6) + 5;
-                const modifyIndex = Math.floor(Math.random() * Math.max(1, codeContent.length - modifySize));
-                
-                scrollToLine('codeContent', modifyIndex + Math.floor(modifySize / 2));
-                
-                for (let i = 0; i < modifySize && (modifyIndex + i) < codeContent.length; i++) {
-                    const originalLine = codeContent[modifyIndex + i];
-                    const modifications = [
-                        originalLine + '  # Updated',
-                        originalLine.replace(/matrix/g, 'data'),
-                        originalLine.replace(/rank/g, 'components'),
-                        originalLine.replace(/gradient/g, 'grad'),
-                        originalLine.replace(/def /g, 'async def '),
-                        originalLine.replace(/float/g, 'np.float64'),
-                        originalLine.replace(/return/g, 'yield'),
-                    ];
+            if (isNewLine) {
+                const lineEl = container.querySelector(`[data-line="${i + 1}"]`);
+                if (lineEl) {
+                    // Scroll to the line
+                    this.scrollToLine(i + 1, container);
                     
-                    codeContent[modifyIndex + i] = modifications[Math.floor(Math.random() * modifications.length)];
+                    // Add green highlight
+                    lineEl.classList.add('added');
+                    
+                    // Remove highlight after short delay
+                    setTimeout(() => {
+                        lineEl.classList.remove('added');
+                    }, 600); // Even faster transition
+                    
+                    // Very short delay before next line
+                    await this.delay(150);
                 }
-                
-                renderCode();
-                
-                setTimeout(() => {
-                    const lines = document.getElementById('codeContent').querySelectorAll('.code-line');
-                    for (let i = 0; i < modifySize; i++) {
-                        if (lines[modifyIndex + i]) {
-                            lines[modifyIndex + i].classList.add('modified');
-                            setTimeout(() => {
-                                lines[modifyIndex + i].classList.remove('modified');
-                            }, 2000);
-                        }
-                    }
-                }, 50);
             }
         }
     }
-    
-    // Update iteration counter
-    iterationCount++;
-    document.getElementById('iterationCount').textContent = iterationCount;
-    
-    // Schedule next change at fixed interval
-    timeoutId = setTimeout(animateChanges, animationSpeed);
-}
 
-function toggleAnimation() {
-    animationRunning = !animationRunning;
-    const btn = document.getElementById('pauseBtn');
-    
-    if (animationRunning) {
-        btn.textContent = 'Pause';
-        btn.classList.remove('paused');
-        animateChanges();
-    } else {
-        btn.textContent = 'Resume';
-        btn.classList.add('paused');
-        clearTimeout(timeoutId);
+    calculateDiff(prevLines, nextLines) {
+        const changes = [];
+        let prevIndex = 0;
+        let nextIndex = 0;
+        
+        // Simple diff algorithm
+        while (prevIndex < prevLines.length || nextIndex < nextLines.length) {
+            if (prevIndex >= prevLines.length) {
+                // Only additions left
+                changes.push({
+                    type: 'add',
+                    line: nextIndex + 1,
+                    content: nextLines[nextIndex]
+                });
+                nextIndex++;
+            } else if (nextIndex >= nextLines.length) {
+                // Only deletions left
+                changes.push({
+                    type: 'remove',
+                    line: prevIndex + 1,
+                    content: prevLines[prevIndex]
+                });
+                prevIndex++;
+            } else if (prevLines[prevIndex] === nextLines[nextIndex]) {
+                // Lines match, continue
+                prevIndex++;
+                nextIndex++;
+            } else {
+                // Lines differ - for simplicity, treat as modification
+                changes.push({
+                    type: 'modify',
+                    line: prevIndex + 1,
+                    oldContent: prevLines[prevIndex],
+                    newContent: nextLines[nextIndex]
+                });
+                prevIndex++;
+                nextIndex++;
+            }
+        }
+        
+        return changes;
+    }
+
+    async animateChange(change, container) {
+        const lineEl = container.querySelector(`[data-line="${change.line}"]`);
+        if (!lineEl) return;
+        
+        // Scroll to the change
+        this.scrollToLine(change.line, container);
+        
+        // Apply visual change
+        switch (change.type) {
+            case 'add':
+                lineEl.classList.add('added');
+                lineEl.querySelector('.line-content').textContent = change.content;
+                break;
+            case 'remove':
+                lineEl.classList.add('removed');
+                break;
+            case 'modify':
+                lineEl.classList.add('modified');
+                lineEl.querySelector('.line-content').textContent = change.newContent;
+                break;
+        }
+        
+        // Remove highlight after delay
+        setTimeout(() => {
+            lineEl.classList.remove('added', 'removed', 'modified');
+        }, 2000);
+    }
+
+    scrollToLine(lineNumber, container) {
+        const lineEl = container.querySelector(`[data-line="${lineNumber}"]`);
+        if (lineEl) {
+            lineEl.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+            });
+        }
+    }
+
+    updateStatus(phase, message) {
+        this.currentPhase = phase;
+        this.currentPhaseEl.textContent = message;
+        
+        // Update phase indicator
+        this.phaseIndicator.className = `phase-indicator phase-${phase}`;
+    }
+
+    updateProgress() {
+        const progress = (this.currentTimestep / this.maxTimesteps) * 100;
+        this.progressFill.style.width = `${progress}%`;
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 }
 
-function changeSpeed() {
-    // Speed is now fixed at 2 changes per second
-    // This button could be repurposed or removed
-}
-
-function resetContent() {
-    iterationCount = 1;
-    document.getElementById('iterationCount').textContent = iterationCount;
-    
-    // Reset all content
-    renderCode();
-    Object.keys(docData).forEach(docId => {
-        renderDoc(docId, docData[docId]);
-    });
-}
-
-// Initialize
+// Start visualization when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    renderCode();
-    Object.keys(docData).forEach(docId => {
-        renderDoc(docId, docData[docId]);
-    });
-    
-    setTimeout(animateChanges, 1000);
+    const visualizer = new DiffVisualizer();
+    visualizer.start();
 });

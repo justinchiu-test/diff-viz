@@ -3,32 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Animated Code Diff Viewer</title>
+    <title>Diff Visualization</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="progress-bar">
+        <div class="progress-fill"></div>
+    </div>
 
-    <div class="iteration-badge">Iteration <span id="iterationCount">1</span></div>
+    <div class="status-badge">
+        <span class="phase-indicator"></span>
+        <span id="currentPhase">Loading...</span>
+        | Timestep <span id="timestepCount">0</span>
+    </div>
 
     <div class="container">
         <div class="code-panel">
-            <div class="code-header">library.py</div>
-            <div class="code-content" id="codeContent"></div>
+            <div class="code-header" id="codebankFileName">codebank.py</div>
+            <div class="code-content" id="codebankContent"></div>
         </div>
-
-        <div class="docs-panel">
-            <div class="doc-column">
-                <div class="doc-header">API Reference</div>
-                <div class="doc-content" id="doc1"></div>
-            </div>
-            <div class="doc-column">
-                <div class="doc-header">Implementation</div>
-                <div class="doc-content" id="doc2"></div>
-            </div>
-            <div class="doc-column">
-                <div class="doc-header">Usage Examples</div>
-                <div class="doc-content" id="doc3"></div>
-            </div>
+        <div class="code-panel">
+            <div class="code-header" id="solutionFileName">solution.py</div>
+            <div class="code-content" id="solutionContent"></div>
         </div>
     </div>
 
