@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animated Code Diff Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="controls">
+        <button class="control-btn" id="pauseBtn" onclick="toggleAnimation()">Pause</button>
+        <button class="control-btn" onclick="resetContent()">Reset</button>
+    </div>
+
+    <div class="iteration-badge">Iteration <span id="iterationCount">1</span></div>
+
+    <div class="container">
+        <div class="code-panel">
+            <div class="code-header">decomposition_update.py</div>
+            <div class="code-content" id="codeContent"></div>
+        </div>
+
+        <div class="docs-panel">
+            <div class="doc-column">
+                <div class="doc-header">API Reference</div>
+                <div class="doc-content" id="doc1"></div>
+            </div>
+            <div class="doc-column">
+                <div class="doc-header">Implementation</div>
+                <div class="doc-content" id="doc2"></div>
+            </div>
+            <div class="doc-column">
+                <div class="doc-header">Usage Examples</div>
+                <div class="doc-content" id="doc3"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
