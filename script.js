@@ -8,11 +8,9 @@ class DiffVisualizer {
         
         // DOM elements
         this.codebankContent = document.getElementById('codebankContent');
-        this.solutionPrevContent = document.getElementById('solutionPrevContent');
-        this.solutionNextContent = document.getElementById('solutionNextContent');
+        this.solutionContent = document.getElementById('solutionContent');
         this.codebankFileName = document.getElementById('codebankFileName');
-        this.solutionPrevFileName = document.getElementById('solutionPrevFileName');
-        this.solutionNextFileName = document.getElementById('solutionNextFileName');
+        this.solutionFileName = document.getElementById('solutionFileName');
         this.currentPhaseEl = document.getElementById('currentPhase');
         this.timestepCountEl = document.getElementById('timestepCount');
         this.phaseIndicator = document.querySelector('.phase-indicator');
@@ -620,23 +618,21 @@ if __name__ == "__main__":
         
         // Update file names
         this.codebankFileName.textContent = 'codebank.py';
-        this.solutionPrevFileName.textContent = `solution${timestep + 1}_prev.py`;
-        this.solutionNextFileName.textContent = `solution${timestep + 1}_next.py`;
+        this.solutionFileName.textContent = `solution${timestep + 1}.py`;
         
-        // Show initial state
+        // Show initial state (prev versions)
         this.displayCode(codebankPrev, this.codebankContent);
-        this.displayCode(solutionPrev, this.solutionPrevContent);
-        this.solutionNextContent.innerHTML = ''; // Start empty
+        this.displayCode(solutionPrev, this.solutionContent);
         await this.delay(1000);
         
         // Phase 1: Animate codebank changes
-        this.updateStatus('codebank', 'Animating codebank changes');
+        this.updateStatus('codebank', 'Updating codebank.py');
         await this.animateDiff(codebankPrev, codebankNext, this.codebankContent);
         await this.delay(500);
         
-        // Phase 2: Write solution_next line by line
-        this.updateStatus('solution', 'Writing solution_next.py');
-        await this.writeCodeLineByLine(solutionNext, this.solutionNextContent);
+        // Phase 2: Animate solution changes
+        this.updateStatus('solution', 'Updating solution.py');
+        await this.animateDiff(solutionPrev, solutionNext, this.solutionContent);
         await this.delay(200);
     }
 
@@ -752,18 +748,156 @@ if __name__ == "__main__":
         const prevLines = prevContent.split('\n');
         const nextLines = nextContent.split('\n');
         
-        // Find added lines and animate them one by one
-        await this.animateLineByLine(prevLines, nextLines, container);
+        // Animate the diff with insertions and deletions
+        await this.animateFullDiff(prevLines, nextLines, container);
     }
 
-    async animateLineByLine(prevLines, nextLines, container) {
+    async animateFullDiff(prevLines, nextLines, container) {
         // Start by showing the previous version
         this.displayCode(prevLines.join('\n'), container);
-        await this.delay(1000); // Longer pause to show the starting state
+        await this.delay(1000);
         
-        // Animate token by token for new lines
-        await this.animateTokenByToken(prevLines, nextLines, container);
+        // Two-sweep algorithm: delete all non-matching lines, then add all new lines
+        let currentLines = [...prevLines];
+        const nextSet = new Set(nextLines);
+        
+        // SWEEP 1: Mark and delete all lines that don't appear in next
+        // First, mark all lines to delete
+        const linesToDelete = [];
+        for (let i = 0; i < currentLines.length; i++) {
+            if (!nextSet.has(currentLines[i])) {
+                linesToDelete.push(i);
+            }
+        }
+        
+        // Animate deletions from end to start
+        for (let i = linesToDelete.length - 1; i >= 0; i--) {
+            const lineIndex = linesToDelete[i];
+            const lineEl = container.querySelector(`[data-line="${lineIndex + 1}"]`);
+            if (lineEl) {
+                lineEl.classList.add('deleted');
+                this.scrollToLine(lineIndex + 1, container);
+                await this.delay(150);
+            }
+        }
+        
+        // Actually remove the lines (from end to start to preserve indices)
+        for (let i = linesToDelete.length - 1; i >= 0; i--) {
+            currentLines.splice(linesToDelete[i], 1);
+        }
+        this.displayCode(currentLines.join('\n'), container);
+        
+        // Brief pause between sweeps
+        await this.delay(300);
+        
+        // SWEEP 2: Add all lines from next in their correct positions
+        // Build the final result line by line
+        for (let targetIdx = 0; targetIdx < nextLines.length; targetIdx++) {
+            const targetLine = nextLines[targetIdx];
+            
+            // Check if this line already exists at the correct position
+            if (targetIdx < currentLines.length && currentLines[targetIdx] === targetLine) {
+                // Line is already in the right place, skip
+                continue;
+            }
+            
+            // Find if this line exists elsewhere and remove it
+            for (let i = targetIdx + 1; i < currentLines.length; i++) {
+                if (currentLines[i] === targetLine) {
+                    currentLines.splice(i, 1);
+                    break;
+                }
+            }
+            
+            // Now insert the line at the correct position
+            const tokens = this.tokenizeLine(targetLine);
+            let currentLine = '';
+            
+            // Insert empty line at position
+            currentLines.splice(targetIdx, 0, '');
+            this.displayCode(currentLines.join('\n'), container);
+            
+            // Animate each token
+            for (const token of tokens) {
+                currentLine += token;
+                currentLines[targetIdx] = currentLine;
+                
+                // Update display
+                this.displayCode(currentLines.join('\n'), container);
+                
+                // Highlight the line being written
+                const lineEl = container.querySelector(`[data-line="${targetIdx + 1}"]`);
+                if (lineEl) {
+                    lineEl.classList.add('added');
+                    this.scrollToLine(targetIdx + 1, container);
+                }
+                
+                // Token delay
+                const delay = this.getTokenDelay(token);
+                await this.delay(delay);
+            }
+            
+            // Remove highlight after line is complete
+            const lineEl = container.querySelector(`[data-line="${targetIdx + 1}"]`);
+            if (lineEl) {
+                setTimeout(() => {
+                    lineEl.classList.remove('added');
+                }, 800);
+            }
+            
+            await this.delay(50);
+        }
     }
+    
+    async writeNewContent(lines, container) {
+        let currentLines = [];
+        
+        for (let i = 0; i < lines.length; i++) {
+            const targetLine = lines[i];
+            const tokens = this.tokenizeLine(targetLine);
+            let currentLine = '';
+            
+            // Add empty line placeholder
+            currentLines.push('');
+            
+            // Write tokens one by one
+            for (const token of tokens) {
+                currentLine += token;
+                currentLines[i] = currentLine;
+                
+                // Update display
+                this.displayCode(currentLines.join('\n'), container);
+                
+                // Highlight the line being written
+                const lineEl = container.querySelector(`[data-line="${i + 1}"]`);
+                if (lineEl) {
+                    lineEl.classList.add('added');
+                    this.scrollToLine(i + 1, container);
+                }
+                
+                // Token delay
+                const delay = this.getTokenDelay(token);
+                await this.delay(delay);
+            }
+            
+            // Remove highlight after line is complete
+            const lineEl = container.querySelector(`[data-line="${i + 1}"]`);
+            if (lineEl) {
+                setTimeout(() => {
+                    lineEl.classList.remove('added');
+                }, 600);
+            }
+            
+            // Pause between lines
+            await this.delay(50);
+        }
+    }
+    
+    countCommonLines(prevLines, nextLines) {
+        const nextSet = new Set(nextLines);
+        return prevLines.filter(line => nextSet.has(line)).length;
+    }
+    
     
     async animateTokenByToken(prevLines, nextLines, container) {
         // Use LCS (Longest Common Subsequence) based approach for proper diff
@@ -909,50 +1043,6 @@ if __name__ == "__main__":
         return changes;
     }
 
-    async writeCodeLineByLine(content, container) {
-        const lines = content.split('\n');
-        let currentLines = [];
-        
-        for (let i = 0; i < lines.length; i++) {
-            const targetLine = lines[i];
-            const tokens = this.tokenizeLine(targetLine);
-            let currentLine = '';
-            
-            // Add empty line placeholder
-            currentLines.push('');
-            
-            // Write tokens one by one
-            for (const token of tokens) {
-                currentLine += token;
-                currentLines[i] = currentLine;
-                
-                // Update display
-                this.displayCode(currentLines.join('\n'), container);
-                
-                // Highlight the line being written
-                const lineEl = container.querySelector(`[data-line="${i + 1}"]`);
-                if (lineEl) {
-                    lineEl.classList.add('added');
-                    this.scrollToLine(i + 1, container);
-                }
-                
-                // Token delay
-                const delay = this.getTokenDelay(token);
-                await this.delay(delay);
-            }
-            
-            // Remove highlight after line is complete
-            const lineEl = container.querySelector(`[data-line="${i + 1}"]`);
-            if (lineEl) {
-                setTimeout(() => {
-                    lineEl.classList.remove('added');
-                }, 600);
-            }
-            
-            // Pause between lines
-            await this.delay(50);
-        }
-    }
 
     calculateDiff(prevLines, nextLines) {
         const changes = [];
