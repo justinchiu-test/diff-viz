@@ -29,7 +29,6 @@ from collections import deque
 import heapq
 import sys
 def read_tree():
-
     n = int(input())
     edges = []
     degrees = [0] * n
@@ -43,14 +42,12 @@ def read_tree():
     return (n, edges, degrees)
 
 def find_node_by_degree(degrees, threshold):
-
     for (i, d) in enumerate(degrees):
         if d >= threshold:
             return i
     return None
 
 def label_edges_at_node(edges, node, fin, start):
-
     lab = start
     for (idx, (u, v)) in enumerate(edges):
         if u == node or v == node:
@@ -59,11 +56,9 @@ def label_edges_at_node(edges, node, fin, start):
     return lab
 
 def find_leaves(degrees):
-
     return [i for (i, d) in enumerate(degrees) if d == 1]
 
 def label_edges_at_leaves(edges, leaves, fin, start):
-
     lab = start
     cnt = 0
     for leaf in leaves:
@@ -78,7 +73,6 @@ def label_edges_at_leaves(edges, leaves, fin, start):
     return lab
 
 def label_remaining(fin, start):
-
     lab = start
     for i in range(len(fin)):
         if fin[i] == -1:
@@ -95,7 +89,7 @@ for i in range(n-1):
     occ[y-1]+=1
     graph[i][0] = x-1
     graph[i][1] = y-1
-    
+
 fin = [-1 for i in range(n-1)]
 for i in range(n):
     if occ[i] >= 3 :
@@ -127,8 +121,6 @@ for i in fin:
         print(i)`,
                 solution_next: `from codebank import *
 
-from codebank import *
-
 def main():
     import sys
     data = sys.stdin
@@ -159,7 +151,6 @@ from collections import deque
 import heapq
 import sys
 def read_tree():
-
     n = int(input())
     edges = []
     degrees = [0] * n
@@ -173,14 +164,12 @@ def read_tree():
     return (n, edges, degrees)
 
 def find_node_by_degree(degrees, threshold):
-
     for (i, d) in enumerate(degrees):
         if d >= threshold:
             return i
     return None
 
 def label_edges_at_node(edges, node, fin, start):
-
     lab = start
     for (idx, (u, v)) in enumerate(edges):
         if u == node or v == node:
@@ -189,11 +178,9 @@ def label_edges_at_node(edges, node, fin, start):
     return lab
 
 def find_leaves(degrees):
-
     return [i for (i, d) in enumerate(degrees) if d == 1]
 
 def label_edges_at_leaves(edges, leaves, fin, start):
-
     lab = start
     cnt = 0
     for leaf in leaves:
@@ -208,7 +195,6 @@ def label_edges_at_leaves(edges, leaves, fin, start):
     return lab
 
 def label_remaining(fin, start):
-
     lab = start
     for i in range(len(fin)):
         if fin[i] == -1:
@@ -221,7 +207,6 @@ import heapq
 from collections import deque
 import sys
 def read_tree():
-
     n = int(input())
     edges = []
     degrees = [0] * n
@@ -235,14 +220,12 @@ def read_tree():
     return (n, edges, degrees)
 
 def find_node_by_degree(degrees, threshold):
-
     for (i, d) in enumerate(degrees):
         if d >= threshold:
             return i
     return None
 
 def label_edges_at_node(edges, node, fin, start):
-
     lab = start
     for (idx, (u, v)) in enumerate(edges):
         if u == node or v == node:
@@ -251,11 +234,9 @@ def label_edges_at_node(edges, node, fin, start):
     return lab
 
 def find_leaves(degrees):
-
     return [i for (i, d) in enumerate(degrees) if d == 1]
 
 def label_edges_at_leaves(edges, leaves, fin, start):
-
     lab = start
     cnt = 0
     for leaf in leaves:
@@ -270,7 +251,6 @@ def label_edges_at_leaves(edges, leaves, fin, start):
     return lab
 
 def label_remaining(fin, start):
-
     lab = start
     for i in range(len(fin)):
         if fin[i] == -1:
@@ -279,12 +259,10 @@ def label_remaining(fin, start):
     return fin
 
 def read_sequence():
-
     n = int(input())
     return list(map(int, input().split()))
 
 def compute_kill_steps(seq):
-
     stack = []
     max_steps = 0
     for x in seq:
@@ -305,34 +283,21 @@ def compute_kill_steps(seq):
 p, s, r = [0] * n, [0] * n, t[0]
 
 for i in range(n - 1):
-
     j = i + 1
-
     x = t[j]
-
     if x > r: r = x
-
     else:
-
         while t[i] < x: s[j], i = max(s[j], s[i]), p[i]
-
         p[j] = i
-
         s[j] += 1
 
-print(max(s))
-
-
-
-# Made By Mostafa_Khaled`,
+print(max(s))`,
                 solution_next: `from codebank import *
-
-from codebank import *
 
 def main():
     n = int(input())
     arr = list(map(int, input().split()))
-    print(max_rounds_to_stabilize(arr))
+    print(compute_steps(arr))
 
 if __name__ == "__main__":
     main()`
@@ -343,7 +308,6 @@ import heapq
 from collections import deque
 import sys
 def read_tree():
-
     n = int(input())
     edges = []
     degrees = [0] * n
@@ -357,14 +321,12 @@ def read_tree():
     return (n, edges, degrees)
 
 def find_node_by_degree(degrees, threshold):
-
     for (i, d) in enumerate(degrees):
         if d >= threshold:
             return i
     return None
 
 def label_edges_at_node(edges, node, fin, start):
-
     lab = start
     for (idx, (u, v)) in enumerate(edges):
         if u == node or v == node:
@@ -373,11 +335,9 @@ def label_edges_at_node(edges, node, fin, start):
     return lab
 
 def find_leaves(degrees):
-
     return [i for (i, d) in enumerate(degrees) if d == 1]
 
 def label_edges_at_leaves(edges, leaves, fin, start):
-
     lab = start
     cnt = 0
     for leaf in leaves:
@@ -392,7 +352,6 @@ def label_edges_at_leaves(edges, leaves, fin, start):
     return lab
 
 def label_remaining(fin, start):
-
     lab = start
     for i in range(len(fin)):
         if fin[i] == -1:
@@ -401,12 +360,10 @@ def label_remaining(fin, start):
     return fin
 
 def read_sequence():
-
     n = int(input())
     return list(map(int, input().split()))
 
 def compute_kill_steps(seq):
-
     stack = []
     max_steps = 0
     for x in seq:
@@ -428,7 +385,6 @@ from collections import defaultdict
 import heapq
 import sys
 def read_tree():
-
     n = int(input())
     edges = []
     degrees = [0] * n
@@ -442,14 +398,12 @@ def read_tree():
     return (n, edges, degrees)
 
 def find_node_by_degree(degrees, threshold):
-
     for (i, d) in enumerate(degrees):
         if d >= threshold:
             return i
     return None
 
 def label_edges_at_node(edges, node, fin, start):
-
     lab = start
     for (idx, (u, v)) in enumerate(edges):
         if u == node or v == node:
@@ -458,11 +412,9 @@ def label_edges_at_node(edges, node, fin, start):
     return lab
 
 def find_leaves(degrees):
-
     return [i for (i, d) in enumerate(degrees) if d == 1]
 
 def label_edges_at_leaves(edges, leaves, fin, start):
-
     lab = start
     cnt = 0
     for leaf in leaves:
@@ -477,7 +429,6 @@ def label_edges_at_leaves(edges, leaves, fin, start):
     return lab
 
 def label_remaining(fin, start):
-
     lab = start
     for i in range(len(fin)):
         if fin[i] == -1:
@@ -486,12 +437,10 @@ def label_remaining(fin, start):
     return fin
 
 def read_sequence():
-
     n = int(input())
     return list(map(int, input().split()))
 
 def compute_kill_steps(seq):
-
     stack = []
     max_steps = 0
     for x in seq:
@@ -508,7 +457,6 @@ def compute_kill_steps(seq):
     return max_steps
 
 def build_adj_list(n, edges):
-
     adj = [[] for _ in range(n)]
     for (u, v) in edges:
         adj[u].append(v)
@@ -516,7 +464,6 @@ def build_adj_list(n, edges):
     return adj
 
 def dfs_subtree_size(node, parent, adj, sizes):
-
     total = 1
     for nei in adj[node]:
         if nei != parent:
@@ -525,7 +472,6 @@ def dfs_subtree_size(node, parent, adj, sizes):
     return total
 
 def compute_subtree_sizes(n, adj):
-
     sizes = [0] * n
     dfs_subtree_size(0, -1, adj, sizes)
     return sizes
@@ -556,7 +502,6 @@ def main():
 	tt=[]
 	dfs(0,g,-1,sz)
 	res=0
-	# print(sz)
 	for i in range(1,n):
 		if sz[i]%2!=0:
 			res+=1
@@ -568,8 +513,6 @@ t.start()
 t.join()`,
                 solution_next: `from codebank import *
 
-from codebank import *
-
 import sys
 
 def main():
@@ -579,10 +522,18 @@ def main():
     if n & 1:
         print(-1)
         return
-    edges = [tuple(map(int, input().split())) for _ in range(n-1)]
-    graph = build_graph(n, edges)
-    sizes = compute_subtree_sizes(graph, n)
-    print(count_removable_edges(sizes))
+    edges = []
+    for _ in range(n-1):
+        u, v = map(int, input().split())
+        edges.append((u-1, v-1))
+    graph = build_adj_list(n, edges)
+    sizes = compute_subtree_sizes(n, graph)
+    
+    res = 0
+    for i in range(1, n):
+        if sizes[i] % 2 != 0:
+            res += 1
+    print(res)
 
 if __name__ == "__main__":
     main()`
@@ -808,7 +759,7 @@ if __name__ == "__main__":
             // Remove the empty line
             currentLines.splice(lineIndex, 1);
             this.displayCode(currentLines.join('\n'), container);
-            await this.delay(50);
+            await this.delay(25);
         }
         
         // Brief pause between sweeps
@@ -866,10 +817,10 @@ if __name__ == "__main__":
             if (lineEl) {
                 setTimeout(() => {
                     lineEl.classList.remove('added');
-                }, 800);
+                }, 400);
             }
             
-            await this.delay(50);
+            await this.delay(25);
         }
     }
     
@@ -909,11 +860,11 @@ if __name__ == "__main__":
             if (lineEl) {
                 setTimeout(() => {
                     lineEl.classList.remove('added');
-                }, 600);
+                }, 300);
             }
             
             // Pause between lines
-            await this.delay(50);
+            await this.delay(25);
         }
     }
     
@@ -966,11 +917,11 @@ if __name__ == "__main__":
                 if (lineEl) {
                     setTimeout(() => {
                         lineEl.classList.remove('added');
-                    }, 800);
+                    }, 400);
                 }
                 
                 // Pause between lines
-                await this.delay(50);
+                await this.delay(25);
             }
         }
     }
@@ -1029,12 +980,12 @@ if __name__ == "__main__":
     }
     
     getTokenDelay(token) {
-        // Variable delays for different token types (doubled speed)
-        if (token.match(/^\s+$/)) return 10;  // Whitespace
-        if (token.match(/^[(){}\[\]]$/)) return 25;  // Brackets
-        if (token.match(/^[a-zA-Z_]\w*$/)) return 20;  // Identifiers
-        if (token.match(/^[0-9]+$/)) return 20;  // Numbers
-        return 15;  // Default
+        // Variable delays for different token types (faster speed)
+        if (token.match(/^\s+$/)) return 5;  // Whitespace
+        if (token.match(/^[(){}\[\]]$/)) return 12;  // Brackets
+        if (token.match(/^[a-zA-Z_]\w*$/)) return 10;  // Identifiers
+        if (token.match(/^[0-9]+$/)) return 10;  // Numbers
+        return 8;  // Default
     }
 
     calculateLineDiff(prevLines, nextLines) {
