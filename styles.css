@@ -34,7 +34,7 @@ body {
     background: #f5f5f5;
     padding: 8px 12px;
     border-bottom: 1px solid #ddd;
-    font-size: 12px;
+    font-size: 18px;
     color: #666;
     font-weight: 500;
 }
@@ -42,8 +42,8 @@ body {
 .code-content {
     flex: 1;
     overflow-y: auto;
-    font-size: 11px;
-    line-height: 16px;
+    font-size: 16.5px;
+    line-height: 24px;
     background: white;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE and Edge */
@@ -57,7 +57,7 @@ body {
 .code-line {
     display: flex;
     align-items: flex-start;
-    min-height: 16px;
+    min-height: 24px;
     transition: background-color 0.3s ease;
     padding: 1px 0;
     border-left: 3px solid transparent;
@@ -65,12 +65,12 @@ body {
 
 .line-number {
     color: #999;
-    width: 35px;
+    width: 50px;
     flex-shrink: 0;
     text-align: right;
-    padding-right: 8px;
+    padding-right: 12px;
     user-select: none;
-    font-size: 10px;
+    font-size: 15px;
 }
 
 .line-content {
@@ -132,7 +132,7 @@ body {
     color: white;
     padding: 12px 20px;
     border-radius: 25px;
-    font-size: 13px;
+    font-size: 19.5px;
     font-weight: 500;
     z-index: 1000;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);

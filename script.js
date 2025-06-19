@@ -636,14 +636,18 @@ if __name__ == "__main__":
         await this.delay(200);
     }
 
-    displayCode(content, container) {
+    displayCode(content, container, highlightedLines = []) {
         const lines = content.split('\n');
-        container.innerHTML = lines.map((line, i) => `
-            <div class="code-line" data-line="${i + 1}">
-                <div class="line-number">${i + 1}</div>
-                <div class="line-content">${this.applySyntaxHighlighting(line)}</div>
-            </div>
-        `).join('');
+        container.innerHTML = lines.map((line, i) => {
+            const lineNum = i + 1;
+            const isHighlighted = highlightedLines.includes(lineNum);
+            return `
+                <div class="code-line ${isHighlighted ? 'deleted' : ''}" data-line="${lineNum}">
+                    <div class="line-number">${lineNum}</div>
+                    <div class="line-content">${this.applySyntaxHighlighting(line)}</div>
+                </div>
+            `;
+        }).join('');
     }
 
     applySyntaxHighlighting(code) {
@@ -763,40 +767,48 @@ if __name__ == "__main__":
         
         // SWEEP 1: Delete all lines that don't appear in next (from end to start)
         // Process deletions one by one to maintain correct indexing
-        for (let i = currentLines.length - 1; i >= 0; i--) {
+        const linesToDelete = [];
+        for (let i = 0; i < currentLines.length; i++) {
             if (!nextSet.has(currentLines[i])) {
-                // Animate token-by-token deletion (backspace effect)
-                const lineContent = currentLines[i];
-                const tokens = this.tokenizeLine(lineContent);
-                
-                // Scroll to the line being deleted
-                this.scrollToLine(i + 1, container);
-                
-                // Delete tokens from end to start
-                for (let tokenIdx = tokens.length - 1; tokenIdx >= 0; tokenIdx--) {
-                    // Rebuild the line without the last tokens
-                    const remainingTokens = tokens.slice(0, tokenIdx);
-                    currentLines[i] = remainingTokens.join('');
-                    
-                    // Update display
-                    this.displayCode(currentLines.join('\n'), container);
-                    
-                    // Re-apply the deleted class to maintain red highlighting
-                    const lineEl = container.querySelector(`[data-line="${i + 1}"]`);
-                    if (lineEl) {
-                        lineEl.classList.add('deleted');
-                    }
-                    
-                    // Token delay (same as insertion)
-                    const delay = this.getTokenDelay(tokens[tokenIdx]);
-                    await this.delay(delay);
-                }
-                
-                // Remove the empty line
-                currentLines.splice(i, 1);
-                this.displayCode(currentLines.join('\n'), container);
-                await this.delay(50);
+                linesToDelete.push(i);
             }
+        }
+        
+        // Delete from end to start to maintain correct indices
+        for (let idx = linesToDelete.length - 1; idx >= 0; idx--) {
+            const lineIndex = linesToDelete[idx];
+            const lineContent = currentLines[lineIndex];
+            const tokens = this.tokenizeLine(lineContent);
+            
+            // Scroll to the line being deleted (adjust for already deleted lines)
+            const displayLineNum = lineIndex + 1;
+            this.scrollToLine(displayLineNum, container);
+            
+            // Highlight line for deletion
+            const lineEl = container.querySelector(`[data-line="${displayLineNum}"]`);
+            if (lineEl) {
+                lineEl.classList.add('deleted');
+            }
+            
+            // Delete tokens from end to start
+            for (let tokenIdx = tokens.length - 1; tokenIdx >= 0; tokenIdx--) {
+                // Rebuild the line without the last tokens
+                const remainingTokens = tokens.slice(0, tokenIdx);
+                currentLines[lineIndex] = remainingTokens.join('');
+                
+                // Update display with highlighted line
+                const highlightedLines = [displayLineNum];
+                this.displayCode(currentLines.join('\n'), container, highlightedLines);
+                
+                // Token delay (same as insertion)
+                const delay = this.getTokenDelay(tokens[tokenIdx]);
+                await this.delay(delay);
+            }
+            
+            // Remove the empty line
+            currentLines.splice(lineIndex, 1);
+            this.displayCode(currentLines.join('\n'), container);
+            await this.delay(50);
         }
         
         // Brief pause between sweeps
