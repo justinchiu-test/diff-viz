@@ -582,7 +582,7 @@ if __name__ == "__main__":
         await this.delay(500);
         
         // Phase 2: Animate solution changes
-        this.updateStatus('solution', 'Updating solution.py');
+        this.updateStatus('solution', `Updating solution${timestep + 1}.py`);
         await this.animateDiff(solutionPrev, solutionNext, this.solutionContent);
         await this.delay(200);
     }
