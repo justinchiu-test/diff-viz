@@ -28,7 +28,7 @@ body {
     overflow: hidden;
 }
 
-.code-panel:first-child {
+.container > .code-panel:first-child {
     width: 50%;
 }
 
@@ -38,14 +38,25 @@ body {
     flex-direction: column;
 }
 
+.right-pane .code-panel {
+    width: calc(100% - 16px);
+    margin: 8px;
+}
+
+.right-pane .code-panel:first-child {
+    margin-bottom: 4px;
+}
+
+.right-pane .code-panel:last-child {
+    margin-top: 4px;
+}
+
 .solution-prev {
     flex: 1;
-    margin-bottom: 4px;
 }
 
 .solution-next {
     flex: 1;
-    margin-top: 4px;
 }
 
 .code-header {
