@@ -87,7 +87,7 @@ body {
     display: flex;
     align-items: flex-start;
     min-height: 16px;
-    transition: all 0.4s ease;
+    transition: background-color 0.3s ease;
     padding: 1px 0;
     border-left: 3px solid transparent;
 }
@@ -111,8 +111,6 @@ body {
 
 .added {
     background-color: #d4edda !important;
-    animation: highlightGreen 0.6s ease;
-    transform: translateX(0);
 }
 
 .deleted {
@@ -129,23 +127,6 @@ body {
     animation: slideInYellow 0.5s ease;
 }
 
-@keyframes highlightGreen {
-    0% { 
-        background-color: #28a745;
-        color: white;
-        transform: translateX(-8px);
-    }
-    20% {
-        background-color: #28a745;
-        color: white;
-        transform: translateX(0);
-    }
-    100% { 
-        background-color: #d4edda;
-        color: inherit;
-        transform: translateX(0);
-    }
-}
 
 @keyframes slideInRed {
     from { 

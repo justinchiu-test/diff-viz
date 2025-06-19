@@ -23,48 +23,70 @@ class DiffVisualizer {
         this.sampleData = {
             time0: {
                 codebank_prev: `
-import sys
+import heapq
 from collections import deque
-import heapq`,
+import sys`,
                 codebank_next: `
-import sys
 from collections import deque
 import heapq
-def compute_degrees(n, edges):
+import sys
+def read_tree():
 
-    occ = [0] * n
-    for (u, v) in edges:
-        occ[u] += 1
-        occ[v] += 1
-    return occ
+    n = int(input())
+    edges = []
+    degrees = [0] * n
+    for _ in range(n - 1):
+        (u, v) = map(int, input().split())
+        u -= 1
+        v -= 1
+        edges.append((u, v))
+        degrees[u] += 1
+        degrees[v] += 1
+    return (n, edges, degrees)
 
-def find_node_with_degree_at_least(occ, k):
+def find_node_by_degree(degrees, threshold):
 
-    for (i, d) in enumerate(occ):
-        if d >= k:
+    for (i, d) in enumerate(degrees):
+        if d >= threshold:
             return i
-    return -1
+    return None
 
-def find_leaves(occ):
+def label_edges_at_node(edges, node, fin, start):
 
-    return [i for (i, d) in enumerate(occ) if d == 1]
-
-def assign_incident_labels(edges, node, labels, start):
-
+    lab = start
     for (idx, (u, v)) in enumerate(edges):
-        if labels[idx] == -1 and (u == node or v == node):
-            labels[idx] = start
-            start += 1
-    return start
+        if u == node or v == node:
+            fin[idx] = lab
+            lab += 1
+    return lab
 
-def fill_remaining_labels(labels, start):
+def find_leaves(degrees):
 
-    for i in range(len(labels)):
-        if labels[i] == -1:
-            labels[i] = start
-            start += 1
-    return labels
+    return [i for (i, d) in enumerate(degrees) if d == 1]
 
+def label_edges_at_leaves(edges, leaves, fin, start):
+
+    lab = start
+    cnt = 0
+    for leaf in leaves:
+        if cnt >= 2:
+            break
+        for (idx, (u, v)) in enumerate(edges):
+            if leaf == u or leaf == v:
+                fin[idx] = lab
+                lab += 1
+                cnt += 1
+                break
+    return lab
+
+def label_remaining(fin, start):
+
+    lab = start
+    for i in range(len(fin)):
+        if fin[i] == -1:
+            fin[i] = lab
+            lab += 1
+    return fin
 `,
                 solution_prev: `n = int(input())
 occ = [0 for i in range(n)]
@@ -135,100 +157,150 @@ if __name__ == "__main__":
             },
             time1: {
                 codebank_prev: `
-import sys
 from collections import deque
 import heapq
-def compute_degrees(n, edges):
+import sys
+def read_tree():
 
-    occ = [0] * n
-    for (u, v) in edges:
-        occ[u] += 1
-        occ[v] += 1
-    return occ
+    n = int(input())
+    edges = []
+    degrees = [0] * n
+    for _ in range(n - 1):
+        (u, v) = map(int, input().split())
+        u -= 1
+        v -= 1
+        edges.append((u, v))
+        degrees[u] += 1
+        degrees[v] += 1
+    return (n, edges, degrees)
 
-def find_node_with_degree_at_least(occ, k):
+def find_node_by_degree(degrees, threshold):
 
-    for (i, d) in enumerate(occ):
-        if d >= k:
+    for (i, d) in enumerate(degrees):
+        if d >= threshold:
             return i
-    return -1
+    return None
 
-def find_leaves(occ):
+def label_edges_at_node(edges, node, fin, start):
 
-    return [i for (i, d) in enumerate(occ) if d == 1]
-
-def assign_incident_labels(edges, node, labels, start):
-
+    lab = start
     for (idx, (u, v)) in enumerate(edges):
-        if labels[idx] == -1 and (u == node or v == node):
-            labels[idx] = start
-            start += 1
-    return start
+        if u == node or v == node:
+            fin[idx] = lab
+            lab += 1
+    return lab
 
-def fill_remaining_labels(labels, start):
+def find_leaves(degrees):
 
-    for i in range(len(labels)):
-        if labels[i] == -1:
-            labels[i] = start
-            start += 1
-    return labels
+    return [i for (i, d) in enumerate(degrees) if d == 1]
 
+def label_edges_at_leaves(edges, leaves, fin, start):
+
+    lab = start
+    cnt = 0
+    for leaf in leaves:
+        if cnt >= 2:
+            break
+        for (idx, (u, v)) in enumerate(edges):
+            if leaf == u or leaf == v:
+                fin[idx] = lab
+                lab += 1
+                cnt += 1
+                break
+    return lab
+
+def label_remaining(fin, start):
+
+    lab = start
+    for i in range(len(fin)):
+        if fin[i] == -1:
+            fin[i] = lab
+            lab += 1
+    return fin
 `,
                 codebank_next: `
-import sys
-from collections import deque
 import heapq
-from typing import List
-def compute_degrees(n, edges):
+from collections import deque
+import sys
+def read_tree():
 
-    occ = [0] * n
-    for (u, v) in edges:
-        occ[u] += 1
-        occ[v] += 1
-    return occ
+    n = int(input())
+    edges = []
+    degrees = [0] * n
+    for _ in range(n - 1):
+        (u, v) = map(int, input().split())
+        u -= 1
+        v -= 1
+        edges.append((u, v))
+        degrees[u] += 1
+        degrees[v] += 1
+    return (n, edges, degrees)
 
-def find_node_with_degree_at_least(occ, k):
+def find_node_by_degree(degrees, threshold):
 
-    for (i, d) in enumerate(occ):
-        if d >= k:
+    for (i, d) in enumerate(degrees):
+        if d >= threshold:
             return i
-    return -1
+    return None
 
-def find_leaves(occ):
+def label_edges_at_node(edges, node, fin, start):
 
-    return [i for (i, d) in enumerate(occ) if d == 1]
-
-def assign_incident_labels(edges, node, labels, start):
-
+    lab = start
     for (idx, (u, v)) in enumerate(edges):
-        if labels[idx] == -1 and (u == node or v == node):
-            labels[idx] = start
-            start += 1
-    return start
+        if u == node or v == node:
+            fin[idx] = lab
+            lab += 1
+    return lab
 
-def fill_remaining_labels(labels, start):
+def find_leaves(degrees):
 
-    for i in range(len(labels)):
-        if labels[i] == -1:
-            labels[i] = start
-            start += 1
-    return labels
+    return [i for (i, d) in enumerate(degrees) if d == 1]
 
-def max_rounds_to_stabilize(arr):
+def label_edges_at_leaves(edges, leaves, fin, start):
+
+    lab = start
+    cnt = 0
+    for leaf in leaves:
+        if cnt >= 2:
+            break
+        for (idx, (u, v)) in enumerate(edges):
+            if leaf == u or leaf == v:
+                fin[idx] = lab
+                lab += 1
+                cnt += 1
+                break
+    return lab
+
+def label_remaining(fin, start):
+
+    lab = start
+    for i in range(len(fin)):
+        if fin[i] == -1:
+            fin[i] = lab
+            lab += 1
+    return fin
+
+def read_sequence():
+
+    n = int(input())
+    return list(map(int, input().split()))
+
+def compute_kill_steps(seq):
 
     stack = []
-    dp = [0] * len(arr)
-    max_rounds = 0
-    for (i, x) in enumerate(arr):
-        max_dp = 0
-        while stack and arr[stack[-1]] < x:
-            max_dp = max(max_dp, dp[stack.pop()])
+    max_steps = 0
+    for x in seq:
+        steps = 0
+        while stack and x >= stack[-1][0]:
+            steps = max(steps, stack[-1][1])
+            stack.pop()
         if stack:
-            dp[i] = max_dp + 1
-            max_rounds = max(max_rounds, dp[i])
-        stack.append(i)
-    return max_rounds
-
+            steps += 1
+        else:
+            steps = 0
+        max_steps = max(max_steps, steps)
+        stack.append((x, steps))
+    return max_steps
 `,
                 solution_prev: `n, t = int(input()), list(map(int, input().split()))
 
@@ -269,144 +341,196 @@ if __name__ == "__main__":
             },
             time2: {
                 codebank_prev: `
-import sys
-from collections import deque
 import heapq
-from typing import List
-def compute_degrees(n, edges):
+from collections import deque
+import sys
+def read_tree():
 
-    occ = [0] * n
-    for (u, v) in edges:
-        occ[u] += 1
-        occ[v] += 1
-    return occ
+    n = int(input())
+    edges = []
+    degrees = [0] * n
+    for _ in range(n - 1):
+        (u, v) = map(int, input().split())
+        u -= 1
+        v -= 1
+        edges.append((u, v))
+        degrees[u] += 1
+        degrees[v] += 1
+    return (n, edges, degrees)
 
-def find_node_with_degree_at_least(occ, k):
+def find_node_by_degree(degrees, threshold):
 
-    for (i, d) in enumerate(occ):
-        if d >= k:
+    for (i, d) in enumerate(degrees):
+        if d >= threshold:
             return i
-    return -1
+    return None
 
-def find_leaves(occ):
+def label_edges_at_node(edges, node, fin, start):
 
-    return [i for (i, d) in enumerate(occ) if d == 1]
-
-def assign_incident_labels(edges, node, labels, start):
-
+    lab = start
     for (idx, (u, v)) in enumerate(edges):
-        if labels[idx] == -1 and (u == node or v == node):
-            labels[idx] = start
-            start += 1
-    return start
+        if u == node or v == node:
+            fin[idx] = lab
+            lab += 1
+    return lab
 
-def fill_remaining_labels(labels, start):
+def find_leaves(degrees):
 
-    for i in range(len(labels)):
-        if labels[i] == -1:
-            labels[i] = start
-            start += 1
-    return labels
+    return [i for (i, d) in enumerate(degrees) if d == 1]
 
-def max_rounds_to_stabilize(arr):
+def label_edges_at_leaves(edges, leaves, fin, start):
+
+    lab = start
+    cnt = 0
+    for leaf in leaves:
+        if cnt >= 2:
+            break
+        for (idx, (u, v)) in enumerate(edges):
+            if leaf == u or leaf == v:
+                fin[idx] = lab
+                lab += 1
+                cnt += 1
+                break
+    return lab
+
+def label_remaining(fin, start):
+
+    lab = start
+    for i in range(len(fin)):
+        if fin[i] == -1:
+            fin[i] = lab
+            lab += 1
+    return fin
+
+def read_sequence():
+
+    n = int(input())
+    return list(map(int, input().split()))
+
+def compute_kill_steps(seq):
 
     stack = []
-    dp = [0] * len(arr)
-    max_rounds = 0
-    for (i, x) in enumerate(arr):
-        max_dp = 0
-        while stack and arr[stack[-1]] < x:
-            max_dp = max(max_dp, dp[stack.pop()])
+    max_steps = 0
+    for x in seq:
+        steps = 0
+        while stack and x >= stack[-1][0]:
+            steps = max(steps, stack[-1][1])
+            stack.pop()
         if stack:
-            dp[i] = max_dp + 1
-            max_rounds = max(max_rounds, dp[i])
-        stack.append(i)
-    return max_rounds
-
+            steps += 1
+        else:
+            steps = 0
+        max_steps = max(max_steps, steps)
+        stack.append((x, steps))
+    return max_steps
 `,
                 codebank_next: `
+from collections import deque
+from collections import defaultdict
 import heapq
 import sys
-from collections import defaultdict
-from typing import List
-from collections import deque
-def compute_degrees(n, edges):
+def read_tree():
 
-    occ = [0] * n
-    for (u, v) in edges:
-        occ[u] += 1
-        occ[v] += 1
-    return occ
+    n = int(input())
+    edges = []
+    degrees = [0] * n
+    for _ in range(n - 1):
+        (u, v) = map(int, input().split())
+        u -= 1
+        v -= 1
+        edges.append((u, v))
+        degrees[u] += 1
+        degrees[v] += 1
+    return (n, edges, degrees)
 
-def find_node_with_degree_at_least(occ, k):
+def find_node_by_degree(degrees, threshold):
 
-    for (i, d) in enumerate(occ):
-        if d >= k:
+    for (i, d) in enumerate(degrees):
+        if d >= threshold:
             return i
-    return -1
+    return None
 
-def find_leaves(occ):
+def label_edges_at_node(edges, node, fin, start):
 
-    return [i for (i, d) in enumerate(occ) if d == 1]
-
-def assign_incident_labels(edges, node, labels, start):
-
+    lab = start
     for (idx, (u, v)) in enumerate(edges):
-        if labels[idx] == -1 and (u == node or v == node):
-            labels[idx] = start
-            start += 1
-    return start
+        if u == node or v == node:
+            fin[idx] = lab
+            lab += 1
+    return lab
 
-def fill_remaining_labels(labels, start):
+def find_leaves(degrees):
 
-    for i in range(len(labels)):
-        if labels[i] == -1:
-            labels[i] = start
-            start += 1
-    return labels
+    return [i for (i, d) in enumerate(degrees) if d == 1]
 
-def max_rounds_to_stabilize(arr):
+def label_edges_at_leaves(edges, leaves, fin, start):
+
+    lab = start
+    cnt = 0
+    for leaf in leaves:
+        if cnt >= 2:
+            break
+        for (idx, (u, v)) in enumerate(edges):
+            if leaf == u or leaf == v:
+                fin[idx] = lab
+                lab += 1
+                cnt += 1
+                break
+    return lab
+
+def label_remaining(fin, start):
+
+    lab = start
+    for i in range(len(fin)):
+        if fin[i] == -1:
+            fin[i] = lab
+            lab += 1
+    return fin
+
+def read_sequence():
+
+    n = int(input())
+    return list(map(int, input().split()))
+
+def compute_kill_steps(seq):
 
     stack = []
-    dp = [0] * len(arr)
-    max_rounds = 0
-    for (i, x) in enumerate(arr):
-        max_dp = 0
-        while stack and arr[stack[-1]] < x:
-            max_dp = max(max_dp, dp[stack.pop()])
+    max_steps = 0
+    for x in seq:
+        steps = 0
+        while stack and x >= stack[-1][0]:
+            steps = max(steps, stack[-1][1])
+            stack.pop()
         if stack:
-            dp[i] = max_dp + 1
-            max_rounds = max(max_rounds, dp[i])
-        stack.append(i)
-    return max_rounds
+            steps += 1
+        else:
+            steps = 0
+        max_steps = max(max_steps, steps)
+        stack.append((x, steps))
+    return max_steps
 
-def build_graph(n, edges):
+def build_adj_list(n, edges):
 
-    graph = [[] for _ in range(n)]
+    adj = [[] for _ in range(n)]
     for (u, v) in edges:
-        graph[u - 1].append(v - 1)
-        graph[v - 1].append(u - 1)
-    return graph
+        adj[u].append(v)
+        adj[v].append(u)
+    return adj
 
-def dfs_subtree_sizes(node, parent, graph, sizes):
+def dfs_subtree_size(node, parent, adj, sizes):
 
     total = 1
-    for nei in graph[node]:
+    for nei in adj[node]:
         if nei != parent:
-            total += dfs_subtree_sizes(nei, node, graph, sizes)
+            total += dfs_subtree_size(nei, node, adj, sizes)
     sizes[node] = total
     return total
 
-def compute_subtree_sizes(graph, n, root=0):
+def compute_subtree_sizes(n, adj):
 
     sizes = [0] * n
-    dfs_subtree_sizes(root, -1, graph, sizes)
+    dfs_subtree_size(0, -1, adj, sizes)
     return sizes
-
-def count_removable_edges(sizes):
-
-    return sum((1 for size in sizes[1:] if size % 2 == 0))
-
 `,
                 solution_prev: `from collections import  defaultdict
 import threading
@@ -635,41 +759,124 @@ if __name__ == "__main__":
     async animateLineByLine(prevLines, nextLines, container) {
         // Start by showing the previous version
         this.displayCode(prevLines.join('\n'), container);
-        await this.delay(500); // Brief pause to show the starting state
+        await this.delay(1000); // Longer pause to show the starting state
         
-        // Find actual differences using proper diff algorithm
-        const changes = this.calculateLineDiff(prevLines, nextLines);
+        // Animate token by token for new lines
+        await this.animateTokenByToken(prevLines, nextLines, container);
+    }
+    
+    async animateTokenByToken(prevLines, nextLines, container) {
+        // Use LCS (Longest Common Subsequence) based approach for proper diff
+        const diff = this.computeDiff(prevLines, nextLines);
+        let currentLines = [...prevLines];
+        let lineOffset = 0;
         
-        // Build the content incrementally by adding new lines
-        let currentContent = [...prevLines];
-        
-        for (const change of changes) {
-            if (change.type === 'add') {
-                // Insert the new line at the correct position
-                currentContent.splice(change.insertIndex, 0, change.content);
+        for (const change of diff) {
+            if (change.type === 'insert') {
+                // Calculate actual insertion position with offset
+                const insertPos = change.position + lineOffset;
+                const targetLine = change.line;
+                const tokens = this.tokenizeLine(targetLine);
+                let currentLine = '';
                 
-                // Update the display with the new content
-                this.displayCode(currentContent.join('\n'), container);
+                // Insert empty line at the position
+                currentLines.splice(insertPos, 0, '');
+                lineOffset++;
                 
-                // Find and highlight the newly added line
-                const lineEl = container.querySelector(`[data-line="${change.insertIndex + 1}"]`);
+                // Animate each token
+                for (const token of tokens) {
+                    currentLine += token;
+                    currentLines[insertPos] = currentLine;
+                    
+                    // Update display
+                    this.displayCode(currentLines.join('\n'), container);
+                    
+                    // Highlight the line being written
+                    const lineEl = container.querySelector(`[data-line="${insertPos + 1}"]`);
+                    if (lineEl) {
+                        lineEl.classList.add('added');
+                        this.scrollToLine(insertPos + 1, container);
+                    }
+                    
+                    // Token delay
+                    const delay = this.getTokenDelay(token);
+                    await this.delay(delay);
+                }
+                
+                // Remove highlight after line is complete
+                const lineEl = container.querySelector(`[data-line="${insertPos + 1}"]`);
                 if (lineEl) {
-                    // Scroll to the line
-                    this.scrollToLine(change.insertIndex + 1, container);
-                    
-                    // Add green highlight
-                    lineEl.classList.add('added');
-                    
-                    // Remove highlight after short delay
                     setTimeout(() => {
                         lineEl.classList.remove('added');
-                    }, 600);
-                    
-                    // Short delay before next line
-                    await this.delay(150);
+                    }, 800);
+                }
+                
+                // Pause between lines
+                await this.delay(50);
+            }
+        }
+    }
+    
+    computeDiff(prevLines, nextLines) {
+        // Simple diff algorithm that finds insertions
+        const changes = [];
+        let prevIdx = 0;
+        let nextIdx = 0;
+        
+        while (nextIdx < nextLines.length) {
+            if (prevIdx < prevLines.length && prevLines[prevIdx] === nextLines[nextIdx]) {
+                // Lines match, advance both
+                prevIdx++;
+                nextIdx++;
+            } else {
+                // Check if this line exists later in prev
+                let found = false;
+                for (let searchIdx = prevIdx; searchIdx < prevLines.length; searchIdx++) {
+                    if (prevLines[searchIdx] === nextLines[nextIdx]) {
+                        // Found it later - insert all new lines before it
+                        found = true;
+                        break;
+                    }
+                }
+                
+                if (!found) {
+                    // This is a new line to insert
+                    changes.push({
+                        type: 'insert',
+                        position: prevIdx,
+                        line: nextLines[nextIdx]
+                    });
+                    nextIdx++;
+                } else {
+                    // Skip lines in prev that don't match current next
+                    prevIdx++;
                 }
             }
         }
+        
+        return changes;
+    }
+    
+    tokenizeLine(line) {
+        // Split line into meaningful tokens
+        const tokens = [];
+        const regex = /(\s+|[a-zA-Z_]\w*|[0-9]+|\S)/g;
+        let match;
+        
+        while ((match = regex.exec(line)) !== null) {
+            tokens.push(match[0]);
+        }
+        
+        return tokens;
+    }
+    
+    getTokenDelay(token) {
+        // Variable delays for different token types (doubled speed)
+        if (token.match(/^\s+$/)) return 10;  // Whitespace
+        if (token.match(/^[(){}\[\]]$/)) return 25;  // Brackets
+        if (token.match(/^[a-zA-Z_]\w*$/)) return 20;  // Identifiers
+        if (token.match(/^[0-9]+$/)) return 20;  // Numbers
+        return 15;  // Default
     }
 
     calculateLineDiff(prevLines, nextLines) {
@@ -704,29 +911,46 @@ if __name__ == "__main__":
 
     async writeCodeLineByLine(content, container) {
         const lines = content.split('\n');
+        let currentLines = [];
         
         for (let i = 0; i < lines.length; i++) {
-            // Build content up to current line
-            const currentContent = lines.slice(0, i + 1).join('\n');
-            this.displayCode(currentContent, container);
+            const targetLine = lines[i];
+            const tokens = this.tokenizeLine(targetLine);
+            let currentLine = '';
             
-            // Highlight the newly added line
+            // Add empty line placeholder
+            currentLines.push('');
+            
+            // Write tokens one by one
+            for (const token of tokens) {
+                currentLine += token;
+                currentLines[i] = currentLine;
+                
+                // Update display
+                this.displayCode(currentLines.join('\n'), container);
+                
+                // Highlight the line being written
+                const lineEl = container.querySelector(`[data-line="${i + 1}"]`);
+                if (lineEl) {
+                    lineEl.classList.add('added');
+                    this.scrollToLine(i + 1, container);
+                }
+                
+                // Token delay
+                const delay = this.getTokenDelay(token);
+                await this.delay(delay);
+            }
+            
+            // Remove highlight after line is complete
             const lineEl = container.querySelector(`[data-line="${i + 1}"]`);
             if (lineEl) {
-                // Scroll to the line
-                this.scrollToLine(i + 1, container);
-                
-                // Add green highlight
-                lineEl.classList.add('added');
-                
-                // Remove highlight after short delay
                 setTimeout(() => {
                     lineEl.classList.remove('added');
                 }, 600);
-                
-                // Short delay before next line
-                await this.delay(100);
             }
+            
+            // Pause between lines
+            await this.delay(50);
         }
     }
 
@@ -804,10 +1028,16 @@ if __name__ == "__main__":
     scrollToLine(lineNumber, container) {
         const lineEl = container.querySelector(`[data-line="${lineNumber}"]`);
         if (lineEl) {
-            lineEl.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'center' 
-            });
+            // Only scroll if the line is not already visible
+            const rect = lineEl.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            
+            if (rect.top < containerRect.top || rect.bottom > containerRect.bottom) {
+                lineEl.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+            }
         }
     }
 
