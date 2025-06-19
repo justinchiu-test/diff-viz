@@ -761,31 +761,43 @@ if __name__ == "__main__":
         let currentLines = [...prevLines];
         const nextSet = new Set(nextLines);
         
-        // SWEEP 1: Mark and delete all lines that don't appear in next
-        // First, mark all lines to delete
-        const linesToDelete = [];
-        for (let i = 0; i < currentLines.length; i++) {
+        // SWEEP 1: Delete all lines that don't appear in next (from end to start)
+        // Process deletions one by one to maintain correct indexing
+        for (let i = currentLines.length - 1; i >= 0; i--) {
             if (!nextSet.has(currentLines[i])) {
-                linesToDelete.push(i);
+                // Animate token-by-token deletion (backspace effect)
+                const lineContent = currentLines[i];
+                const tokens = this.tokenizeLine(lineContent);
+                
+                // Scroll to the line being deleted
+                this.scrollToLine(i + 1, container);
+                
+                // Delete tokens from end to start
+                for (let tokenIdx = tokens.length - 1; tokenIdx >= 0; tokenIdx--) {
+                    // Rebuild the line without the last tokens
+                    const remainingTokens = tokens.slice(0, tokenIdx);
+                    currentLines[i] = remainingTokens.join('');
+                    
+                    // Update display
+                    this.displayCode(currentLines.join('\n'), container);
+                    
+                    // Re-apply the deleted class to maintain red highlighting
+                    const lineEl = container.querySelector(`[data-line="${i + 1}"]`);
+                    if (lineEl) {
+                        lineEl.classList.add('deleted');
+                    }
+                    
+                    // Token delay (same as insertion)
+                    const delay = this.getTokenDelay(tokens[tokenIdx]);
+                    await this.delay(delay);
+                }
+                
+                // Remove the empty line
+                currentLines.splice(i, 1);
+                this.displayCode(currentLines.join('\n'), container);
+                await this.delay(50);
             }
         }
-        
-        // Animate deletions from end to start
-        for (let i = linesToDelete.length - 1; i >= 0; i--) {
-            const lineIndex = linesToDelete[i];
-            const lineEl = container.querySelector(`[data-line="${lineIndex + 1}"]`);
-            if (lineEl) {
-                lineEl.classList.add('deleted');
-                this.scrollToLine(lineIndex + 1, container);
-                await this.delay(150);
-            }
-        }
-        
-        // Actually remove the lines (from end to start to preserve indices)
-        for (let i = linesToDelete.length - 1; i >= 0; i--) {
-            currentLines.splice(linesToDelete[i], 1);
-        }
-        this.displayCode(currentLines.join('\n'), container);
         
         // Brief pause between sweeps
         await this.delay(300);
