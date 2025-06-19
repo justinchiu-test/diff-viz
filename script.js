@@ -574,7 +574,7 @@ if __name__ == "__main__":
         // Show initial state (prev versions)
         this.displayCode(libraryPrev, this.libraryContent);
         this.displayCode(solutionPrev, this.solutionContent);
-        await this.delay(1000);
+        await this.delay(500);
         
         // Phase 1: Animate library changes
         this.updateStatus('library', 'Updating library.py');
