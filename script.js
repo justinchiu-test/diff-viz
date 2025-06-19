@@ -7,9 +7,9 @@ class DiffVisualizer {
         this.isRunning = false;
         
         // DOM elements
-        this.codebankContent = document.getElementById('codebankContent');
+        this.libraryContent = document.getElementById('libraryContent');
         this.solutionContent = document.getElementById('solutionContent');
-        this.codebankFileName = document.getElementById('codebankFileName');
+        this.libraryFileName = document.getElementById('libraryFileName');
         this.solutionFileName = document.getElementById('solutionFileName');
         this.currentPhaseEl = document.getElementById('currentPhase');
         this.timestepCountEl = document.getElementById('timestepCount');
@@ -20,11 +20,11 @@ class DiffVisualizer {
         // Real data from Librarian viz_data
         this.sampleData = {
             time0: {
-                codebank_prev: `
+                library_prev: `
 import heapq
 from collections import deque
 import sys`,
-                codebank_next: `
+                library_next: `
 from collections import deque
 import heapq
 import sys
@@ -119,7 +119,7 @@ for i in fin:
         var += 1
     else:
         print(i)`,
-                solution_next: `from codebank import *
+                solution_next: `from library import *
 
 def main():
     import sys
@@ -146,7 +146,7 @@ if __name__ == "__main__":
     main()`
             },
             time1: {
-                codebank_prev: `
+                library_prev: `
 from collections import deque
 import heapq
 import sys
@@ -202,7 +202,7 @@ def label_remaining(fin, start):
             lab += 1
     return fin
 `,
-                codebank_next: `
+                library_next: `
 import heapq
 from collections import deque
 import sys
@@ -292,7 +292,7 @@ for i in range(n - 1):
         s[j] += 1
 
 print(max(s))`,
-                solution_next: `from codebank import *
+                solution_next: `from library import *
 
 def main():
     n = int(input())
@@ -303,7 +303,7 @@ if __name__ == "__main__":
     main()`
             },
             time2: {
-                codebank_prev: `
+                library_prev: `
 import heapq
 from collections import deque
 import sys
@@ -379,7 +379,7 @@ def compute_kill_steps(seq):
         stack.append((x, steps))
     return max_steps
 `,
-                codebank_next: `
+                library_next: `
 from collections import deque
 from collections import defaultdict
 import heapq
@@ -511,7 +511,7 @@ threading.stack_size(10 ** 8)
 t = threading.Thread(target=main)
 t.start()
 t.join()`,
-                solution_next: `from codebank import *
+                solution_next: `from library import *
 
 import sys
 
@@ -562,23 +562,23 @@ if __name__ == "__main__":
         // Load initial content for both panels
         this.updateStatus('loading', 'Loading timestep files...');
         
-        const codebankPrev = this.sampleData[timestepKey].codebank_prev;
-        const codebankNext = this.sampleData[timestepKey].codebank_next;
+        const libraryPrev = this.sampleData[timestepKey].library_prev;
+        const libraryNext = this.sampleData[timestepKey].library_next;
         const solutionPrev = this.sampleData[timestepKey].solution_prev;
         const solutionNext = this.sampleData[timestepKey].solution_next;
         
         // Update file names
-        this.codebankFileName.textContent = 'codebank.py';
+        this.libraryFileName.textContent = 'library.py';
         this.solutionFileName.textContent = `solution${timestep + 1}.py`;
         
         // Show initial state (prev versions)
-        this.displayCode(codebankPrev, this.codebankContent);
+        this.displayCode(libraryPrev, this.libraryContent);
         this.displayCode(solutionPrev, this.solutionContent);
         await this.delay(1000);
         
-        // Phase 1: Animate codebank changes
-        this.updateStatus('codebank', 'Updating codebank.py');
-        await this.animateDiff(codebankPrev, codebankNext, this.codebankContent);
+        // Phase 1: Animate library changes
+        this.updateStatus('library', 'Updating library.py');
+        await this.animateDiff(libraryPrev, libraryNext, this.libraryContent);
         await this.delay(500);
         
         // Phase 2: Animate solution changes

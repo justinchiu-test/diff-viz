@@ -32,11 +32,11 @@ body {
 
 .code-header {
     background: #f5f5f5;
-    padding: 8px 12px;
+    padding: 12px 16px;
     border-bottom: 1px solid #ddd;
-    font-size: 18px;
-    color: #666;
-    font-weight: 500;
+    font-size: 24px;
+    color: #444;
+    font-weight: 600;
 }
 
 .code-content {
@@ -155,7 +155,7 @@ body {
     animation: pulse 1s infinite;
 }
 
-.phase-indicator.phase-codebank {
+.phase-indicator.phase-library {
     background: #2196F3;
     animation: pulse 1s infinite;
 }
